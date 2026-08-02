@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# checkpoints / large binaries
+*.pdparams
+*.pdopt
+*.pdmodel
+*.pdiparams
+*.pdiparams.info
+checkpoint/
+checkpoints/
+output/
+*.log
+
+.idea/
+.vscode/
+.DS_Store

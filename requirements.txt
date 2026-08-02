@@ -1,0 +1,16 @@
+# Minimal deps actually imported by the copied code (verified by grepping
+# every copied .py file's import statements -- see README.md "Verification"
+# section for the exact command). NOT copy-pasted from upstream PaddleOCR's
+# requirements.txt, which pulls in many packages this trimmed repo never
+# imports (lxml, premailer, pyclipper, imgaug, python-docx, fonttools, ...).
+
+paddlepaddle-gpu   # or paddlepaddle for CPU-only; install per your CUDA version
+numpy
+opencv-python
+Pillow
+PyYAML
+tqdm
+requests
+packaging
+shapely
+rapidfuzz
