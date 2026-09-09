@@ -94,6 +94,11 @@ def build_seed_with_frames(decoder: EditRefineDecoder, ctc_logits):
 class MultiHeadEditRefineUncertainty(MultiHead):
     def __init__(self, in_channels, out_channels_list, **kwargs):
         super().__init__(in_channels, out_channels_list, **kwargs)
+        # Optional inference-only diagnostics.  The normal output remains the
+        # refined CTC tensor; when enabled, _eval_refined_output wraps that
+        # tensor with per-branch tensors so infer_rec.py can write a JSONL
+        # trace without changing post-processing or training behavior.
+        self.branch_debug = kwargs.get("branch_debug", False)
         assert self.use_length_head, (
             "MultiHeadEditRefineUncertainty requires use_length_head: true -- "
             "the length embedding is one of the edit decoder's inputs."
@@ -124,7 +129,7 @@ class MultiHeadEditRefineUncertainty(MultiHead):
         if not self.training:
             # Exp1 makes no eval-time changes: reuse the exact same
             # apply-ops / re-pack path as the full-branch model.
-            return self._eval_refined_output(ctc_out, ctc_encoder)
+            return self._eval_refined_output(ctc_out, ctc_encoder, x)
 
         if self.use_length_head:
             head_out["length"] = self.length_head(ctc_encoder)
@@ -153,12 +158,19 @@ class MultiHeadEditRefineUncertainty(MultiHead):
         head_out["edit"] = edit_out
         return head_out
 
-    def _eval_refined_output(self, ctc_out, ctc_encoder):
+    def _eval_refined_output(self, ctc_out, ctc_encoder, x):
         # Identical to MultiHeadEditRefine's eval path (see
         # rec_edit_refine_head.py) -- Exp1 makes no inference-time change.
         length_logits = (
             self.length_head(ctc_encoder) if self.use_length_head else None
         )
+
+        # NRTR is a train-time auxiliary branch in the original model.  Run it
+        # only for diagnostics so normal inference keeps its original cost.
+        nrtr_out = None
+        if self.branch_debug and self.gtc_head != "sar":
+            nrtr_out = self.gtc_head(self.before_gtc(x))
+
         seeds_np, seed_lens_np = self.edit_refine_head.build_seed(ctc_out)
         seeds = paddle.to_tensor(seeds_np, dtype="int64")
 
@@ -182,8 +194,32 @@ class MultiHeadEditRefineUncertainty(MultiHead):
             )
             refined_ids_per_sample.append(refined)
 
-        return build_refined_ctc_probs(
+        refined_probs = build_refined_ctc_probs(
             refined_ids_per_sample,
             vocab_size=self.edit_refine_head.vocab_size,
             blank_id=EditRefineDecoder.BLANK_ID,
         )
+
+        if not self.branch_debug:
+            return refined_probs
+
+        # Keep this payload deliberately inference-only and detached.  It is
+        # consumed by tools/infer_rec.py and never enters a loss or backward
+        # pass.  Raw probabilities/logits are retained so a later audit can
+        # recompute confidence, length and operation decisions.
+        branch_debug = {
+            "ctc_probs": ctc_out.numpy(),
+            "length_logits": (
+                length_logits.numpy() if length_logits is not None else None
+            ),
+            "nrtr_ids": nrtr_out[0].numpy() if nrtr_out is not None else None,
+            "nrtr_probs": nrtr_out[1].numpy() if nrtr_out is not None else None,
+            "seed_ids": seeds_np,
+            "seed_lens": seed_lens_np,
+            "edit_op_logits": edit_out["op_logits"].numpy(),
+            "edit_tok_logits": edit_out["tok_logits"].numpy(),
+            "edit_op_ids": op_ids,
+            "edit_tok_ids": tok_ids,
+            "refined_ids": refined_ids_per_sample,
+        }
+        return {"ctc": refined_probs, "branch_debug": branch_debug}

@@ -71,6 +71,7 @@ def main():
             "MultiHead",
             "MultiHeadInterCTC",
             "MultiHeadEditRefine",
+            "MultiHeadEditRefineUncertainty",
         ):  # for multi head (incl. intermediate-CTC/PAE and edit-refine variants)
             out_channels_list = {}
             if config["PostProcess"]["name"] == "SARLabelDecode":

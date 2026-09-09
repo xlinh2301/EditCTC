@@ -33,9 +33,154 @@ import paddle
 from ppocr.data import create_operators, transform
 from ppocr.modeling.architectures import build_model
 from ppocr.postprocess import build_post_process
+from ppocr.postprocess.rec_postprocess import NRTRLabelDecode
 from ppocr.utils.save_load import load_model
 from ppocr.utils.utility import get_image_file_list
 import tools.program as program
+
+
+def _decode_id_sequence(decoder, ids, probs=None, remove_duplicate=False):
+    """Decode one already-collapsed branch sequence for diagnostics."""
+    ids = np.asarray(ids, dtype="int64").reshape([1, -1])
+    if probs is None:
+        probs = np.ones(ids.shape, dtype="float32")
+    else:
+        probs = np.asarray(probs, dtype="float32").reshape([1, -1])
+    return decoder.decode(
+        ids, probs, is_remove_duplicate=remove_duplicate
+    )[0]
+
+
+def _softmax_np(logits):
+    logits = np.asarray(logits, dtype="float32")
+    logits = logits - logits.max(axis=-1, keepdims=True)
+    probs = np.exp(logits)
+    return probs / probs.sum(axis=-1, keepdims=True)
+
+
+def _write_branch_debug(log_file, file_path, debug, ctc_decoder, nrtr_decoder, final):
+    """Write a per-image branch audit record.
+
+    CTC and NERD use the CTC vocabulary.  NRTR has four special tokens of its
+    own, so it is decoded through NRTRLabelDecode.  All arrays are reduced to
+    JSON scalars/lists here, keeping the model output unchanged for callers.
+    """
+    ctc_probs = np.asarray(debug["ctc_probs"])
+    ctc_ids = ctc_probs.argmax(axis=2)
+    ctc_conf = ctc_probs.max(axis=2)
+    ctc_result = ctc_decoder.decode(
+        ctc_ids, ctc_conf, is_remove_duplicate=True
+    )[0]
+
+    length_logits = debug.get("length_logits")
+    lcb = None
+    if length_logits is not None:
+        length_probs = _softmax_np(length_logits)
+        length_prob = length_probs[0]
+        top_lengths = np.argsort(-length_prob)[:5]
+        lcb = {
+            "predicted_length": int(top_lengths[0]),
+            "confidence": float(length_prob[top_lengths[0]]),
+            "top5": [
+                {"length": int(i), "probability": float(length_prob[i])}
+                for i in top_lengths
+            ],
+        }
+
+    nrtr = None
+    if debug.get("nrtr_ids") is not None:
+        nrtr_ids = np.asarray(debug["nrtr_ids"])
+        nrtr_probs = np.asarray(debug["nrtr_probs"])
+        nrtr_result = nrtr_decoder([nrtr_ids[:1], nrtr_probs[:1]])[0]
+        nrtr = {
+            "text": nrtr_result[0],
+            "confidence": float(nrtr_result[1]),
+            "ids": nrtr_ids[0].tolist(),
+            "token_probabilities": nrtr_probs[0].tolist(),
+        }
+
+    seed_lens = int(np.asarray(debug["seed_lens"])[0])
+    seed_ids = np.asarray(debug["seed_ids"])[0, :seed_lens]
+    refined_ids = list(debug["refined_ids"][0])
+    seed_result = _decode_id_sequence(ctc_decoder, seed_ids)
+    refined_result = _decode_id_sequence(ctc_decoder, refined_ids)
+
+    op_logits = np.asarray(debug["edit_op_logits"])[0, :seed_lens]
+    tok_logits = np.asarray(debug["edit_tok_logits"])[0, :seed_lens]
+    op_probs = _softmax_np(op_logits) if seed_lens else np.empty((0, 4))
+    tok_probs = _softmax_np(tok_logits) if seed_lens else np.empty((0, tok_logits.shape[-1]))
+    op_ids = np.asarray(debug["edit_op_ids"])[0, :seed_lens]
+    tok_ids = np.asarray(debug["edit_tok_ids"])[0, :seed_lens]
+    op_names = ["KEEP", "REPLACE", "DELETE", "INSERT_AFTER"]
+
+    def char_at(idx):
+        idx = int(idx)
+        return "" if idx == 0 else ctc_decoder.character[idx]
+
+    frame_trace = []
+    frame_probs = ctc_probs[0]
+    top2 = np.partition(frame_probs, -2, axis=1)[:, -2:]
+    for frame_id, frame_id_probs in enumerate(frame_probs):
+        top_id = int(ctc_ids[0, frame_id])
+        top_prob = float(ctc_conf[0, frame_id])
+        second_prob = float(top2[frame_id].min())
+        frame_trace.append(
+            {
+                "frame": frame_id,
+                "top1_id": top_id,
+                "top1_token": char_at(top_id),
+                "top1_probability": top_prob,
+                "top1_top2_margin": top_prob - second_prob,
+            }
+        )
+
+    operations = []
+    for pos in range(seed_lens):
+        op_id = int(op_ids[pos])
+        token_id = int(tok_ids[pos])
+        operations.append(
+            {
+                "position": pos,
+                "operation": op_names[op_id],
+                "operation_confidence": float(op_probs[pos, op_id]),
+                "seed_token_id": int(seed_ids[pos]),
+                "seed_token": char_at(seed_ids[pos]),
+                "predicted_token_id": token_id,
+                "predicted_token": char_at(token_id),
+                "token_confidence": float(tok_probs[pos, token_id]),
+            }
+        )
+
+    final_text = final[0] if isinstance(final, (list, tuple)) and final else ""
+    final_conf = (
+        float(final[1])
+        if isinstance(final, (list, tuple)) and len(final) > 1
+        else None
+    )
+    record = {
+        "file": file_path,
+        "ctc": {
+            "text": ctc_result[0],
+            "confidence": float(ctc_result[1]),
+            "frame_count": int(ctc_probs.shape[1]),
+            "decoded_length": len(ctc_result[0]),
+            "frame_trace": frame_trace,
+        },
+        "nrtr": nrtr,
+        "lcb": lcb,
+        "nerd": {
+            "seed_text": seed_result[0],
+            "seed_length": seed_lens,
+            "refined_text": refined_result[0],
+            "refined_length": len(refined_result[0]),
+            "changed_positions": sum(op["operation"] != "KEEP" for op in operations),
+            "operations": operations,
+        },
+        "final": {"text": final_text, "confidence": final_conf},
+    }
+    json.dump(record, log_file, ensure_ascii=False)
+    log_file.write("\n")
+    log_file.flush()
 
 
 def main():
@@ -77,7 +222,11 @@ def main():
                     config["Architecture"]["Models"][key]["Head"][
                         "out_channels"
                     ] = char_num
-        elif config["Architecture"]["Head"]["name"] == "MultiHead":  # multi head
+        elif config["Architecture"]["Head"]["name"] in [
+            "MultiHead",
+            "MultiHeadEditRefine",
+            "MultiHeadEditRefineUncertainty",
+        ]:  # multi head, including EditCTC custom heads
             out_channels_list = {}
             char_num = len(getattr(post_process_class, "character"))
             if config["PostProcess"]["name"] == "SARLabelDecode":
@@ -132,6 +281,25 @@ def main():
     )
     if not os.path.exists(os.path.dirname(save_res_path)):
         os.makedirs(os.path.dirname(save_res_path))
+
+    branch_log = None
+    nrtr_decoder = None
+    branch_debug_enabled = config["Architecture"].get(
+        "branch_debug", False
+    ) or config["Architecture"].get("Head", {}).get("branch_debug", False)
+    if branch_debug_enabled:
+        branch_log_path = config["Global"].get(
+            "branch_log_path", save_res_path + ".branches.jsonl"
+        )
+        branch_log_dir = os.path.dirname(branch_log_path)
+        if branch_log_dir and not os.path.exists(branch_log_dir):
+            os.makedirs(branch_log_dir)
+        branch_log = open(branch_log_path, "w")
+        nrtr_decoder = NRTRLabelDecode(
+            character_dict_path=global_config.get("character_dict_path"),
+            use_space_char=global_config.get("use_space_char", True),
+        )
+        logger.info("branch debug log: {}".format(branch_log_path))
 
     model.eval()
 
@@ -193,6 +361,9 @@ def main():
                 preds = model([images, image_mask, label])
             else:
                 preds = model(images)
+            branch_debug = (
+                preds.get("branch_debug") if isinstance(preds, dict) else None
+            )
             post_result = post_process_class(preds)
             info = None
             if isinstance(post_result, dict):
@@ -224,6 +395,17 @@ def main():
             if info is not None:
                 logger.info("\t result: {}".format(info))
                 fout.write(file + "\t" + info + "\n")
+                if branch_debug is not None:
+                    _write_branch_debug(
+                        branch_log,
+                        file,
+                        branch_debug,
+                        post_process_class,
+                        nrtr_decoder,
+                        post_result[0],
+                    )
+    if branch_log is not None:
+        branch_log.close()
     logger.info("success!")
 
 

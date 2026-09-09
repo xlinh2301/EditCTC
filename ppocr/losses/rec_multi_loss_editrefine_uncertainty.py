@@ -34,9 +34,15 @@ class MultiLossEditRefineUncertainty(MultiLoss):
         edit_loss = edit_result["loss"] * self.weight_edit
 
         total["EditLoss"] = edit_loss
+        total["EditOpLoss"] = edit_result["op_loss"] * self.weight_edit
+        total["EditTokLoss"] = edit_result["tok_loss"] * self.weight_edit
         # Not multiplied by weight_edit -- this is a diagnostic rate
         # (fraction of seed positions selected for loss), not a loss term,
         # and must not be added into total["loss"].
         total["EditActivationRate"] = edit_result["activation_rate"]
+        total["EditPredChangeRate"] = edit_result["pred_change_rate"]
+        total["EditPredReplaceRate"] = edit_result["pred_replace_rate"]
+        total["EditPredDeleteRate"] = edit_result["pred_delete_rate"]
+        total["EditPredInsertRate"] = edit_result["pred_insert_rate"]
         total["loss"] = total["loss"] + edit_loss
         return total

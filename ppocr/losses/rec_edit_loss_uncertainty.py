@@ -122,6 +122,10 @@ class EditLossUncertainty(nn.Layer):
                 "op_loss": zero,
                 "tok_loss": zero,
                 "activation_rate": zero,
+                "pred_change_rate": zero,
+                "pred_replace_rate": zero,
+                "pred_delete_rate": zero,
+                "pred_insert_rate": zero,
             }
 
         # --- gating mask -----------------------------------------------
@@ -165,6 +169,10 @@ class EditLossUncertainty(nn.Layer):
                 "op_loss": zero,
                 "tok_loss": zero,
                 "activation_rate": activation_rate,
+                "pred_change_rate": zero,
+                "pred_replace_rate": zero,
+                "pred_delete_rate": zero,
+                "pred_insert_rate": zero,
             }
 
         op_t = paddle.to_tensor(op_t_np, dtype="int64")
@@ -191,9 +199,37 @@ class EditLossUncertainty(nn.Layer):
         op_loss = (op_loss_elem * mask).sum() / denom
         tok_loss = (tok_loss_elem * mask).sum() / denom
         loss = op_loss + tok_loss
+
+        # These rates are diagnostics, not optimization terms.  They show
+        # whether NERD is actually predicting edits and which operation it
+        # uses, instead of merely reporting that the branch has a non-zero
+        # loss.  Rates are measured over valid seed positions so padded slots
+        # do not make an inactive decoder look active.
+        pred_op_np = np.argmax(op_logits.numpy(), axis=2)
+        valid_count = max(int(valid_np.sum()), 1)
+        pred_change_rate = paddle.to_tensor(
+            float(np.logical_and(valid_np, pred_op_np != 0).sum()) / valid_count,
+            dtype="float32",
+        )
+        pred_replace_rate = paddle.to_tensor(
+            float(np.logical_and(valid_np, pred_op_np == 1).sum()) / valid_count,
+            dtype="float32",
+        )
+        pred_delete_rate = paddle.to_tensor(
+            float(np.logical_and(valid_np, pred_op_np == 2).sum()) / valid_count,
+            dtype="float32",
+        )
+        pred_insert_rate = paddle.to_tensor(
+            float(np.logical_and(valid_np, pred_op_np == 3).sum()) / valid_count,
+            dtype="float32",
+        )
         return {
             "loss": loss,
             "op_loss": op_loss,
             "tok_loss": tok_loss,
             "activation_rate": activation_rate,
+            "pred_change_rate": pred_change_rate,
+            "pred_replace_rate": pred_replace_rate,
+            "pred_delete_rate": pred_delete_rate,
+            "pred_insert_rate": pred_insert_rate,
         }
