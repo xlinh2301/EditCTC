@@ -15,15 +15,14 @@ OUT_DIR="${ARBOR_OUT_DIR:?ARBOR_OUT_DIR is required}"
 CFG="${ARBOR_CONFIG:?ARBOR_CONFIG is required}"
 WS=/datastore/cndt_thangcpd/linhtruong/workspace5
 PY="${EDITCTC_PYTHON:-$WS/release_EditCTC/code/.venv/bin/python}"
-PRETRAINED="$WS/workdir_text_rec/PPOCRv6/checkpoints/ppocrv6_small_rec_pretrained"
-EDIT_PRETRAINED="$WS/workdir_text_rec/PPOCRv6/checkpoints_editrefine_textpretrain/editrefine_pretrained"
+INITIAL_CHECKPOINT="$WS/release_EditCTC/checkpoints/s1024/best_accuracy"
 TRAIN_IMAGES="$WS/Data/Indomain/crops/train"
 TRAIN_LABELS="$WS/Data/Indomain/crops/train_label.txt"
 VALID_IMAGES="$WS/Data/Indomain/crops/valid"
 VALID_LABELS="$WS/Data/Indomain/crops/valid_label.txt"
 
 REQUIRED_VRAM=1200 source "$WS/slurm/gpu_setup.sh"
-for required in "$PY" "$CFG" "$PRETRAINED" "$TRAIN_IMAGES" "$TRAIN_LABELS" "$VALID_IMAGES" "$VALID_LABELS"; do
+for required in "$PY" "$CFG" "$INITIAL_CHECKPOINT.pdparams" "$TRAIN_IMAGES" "$TRAIN_LABELS" "$VALID_IMAGES" "$VALID_LABELS"; do
     if [[ ! -e "$required" ]]; then
         echo "Missing required path: $required" >&2
         exit 1
@@ -36,9 +35,9 @@ export PYTHONPATH="$CODE${PYTHONPATH:+:$PYTHONPATH}"
 
 "$PY" tools/train.py -c "$CFG" \
     -o Global.save_model_dir="$OUT_DIR/../checkpoints" \
-       Global.checkpoints=None \
-       Global.pretrained_model="$PRETRAINED" \
-       Global.edit_refine_pretrained="$EDIT_PRETRAINED" \
+       Global.checkpoints="$INITIAL_CHECKPOINT" \
+       Global.pretrained_model=None \
+       Global.edit_refine_pretrained=None \
        Global.distributed=False \
        Train.dataset.data_dir="$TRAIN_IMAGES" \
        Train.dataset.label_file_list="[$TRAIN_LABELS]" \

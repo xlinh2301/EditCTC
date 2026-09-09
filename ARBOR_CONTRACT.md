@@ -56,7 +56,8 @@ The standard training command is:
 cd {cwd} && bash scripts/arbor_train.sh --config <config-in-worktree> --run-name editctc-nerd-lcb --node-id {node_id}
 ```
 
-It submits one `--gres=mps:1` Slurm job, overrides the historical absolute
+It submits one `--gres=mps:1` Slurm job, initializes from the immutable
+`s1024/best_accuracy.pdparams` checkpoint, overrides the historical absolute
 dataset paths with the real paths above, and writes
 `<node>/checkpoints/best_accuracy`. The dev evaluator automatically selects
 that checkpoint for the same node.
