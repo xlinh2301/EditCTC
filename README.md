@@ -66,6 +66,34 @@ this repo mirrors PaddleOCR's `tools/` + `ppocr/` layout — verified by
 actually running `tools/train.py` from this repo (see Verification below);
 no fix was needed.
 
+## Arbor experiment workflow
+
+Arbor is installed in the untracked `.arbor-venv/` environment and its
+project-local skills are under `.agents/skills/arbor-*`. The durable contract
+is [`ARBOR_CONTRACT.md`](ARBOR_CONTRACT.md), and the machine-readable settings
+are in [`research_config.yaml`](research_config.yaml).
+
+Each experiment must run in its own Arbor worktree/branch. Iteration uses B_dev
+through `scripts/arbor_eval_dev.sh`; the two test sets remain reserved for the
+final trunk evaluation. A typical launch from a clean `main` checkout is:
+
+```bash
+.arbor-venv/bin/arbor doctor
+.arbor-venv/bin/arbor run --yes \
+  --yes-cwd "$PWD" \
+  --config research_config.yaml \
+  --run-name editctc-nerd-lcb \
+  --max-cycles 6 \
+  "Improve NERD edit supervision using the OpenSpec experiment sequence"
+```
+
+The dev evaluator prints `score: <nerd_final_accuracy>` and writes detailed
+branch traces, wrong cases, summaries, and per-node Slurm logs under
+`/datastore/cndt_thangcpd/linhtruong/workspace5/Data/EditCTC_arbor_runs/`.
+For training, an Executor can use `scripts/arbor_train.sh`; it applies the
+real `Data/Indomain/crops/{train,valid}` paths and writes a node-local
+`checkpoints/best_accuracy` before evaluation.
+
 ## Hardcoded cluster/machine-absolute paths
 
 All 5 configs (values below are from `s8192`; the other 4 differ only by the

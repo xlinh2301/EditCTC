@@ -1,0 +1,39 @@
+task: >
+  Improve EditCTC's natural-seed error correction so that NERD contributes
+  useful edits while preserving the existing CTC and NRTR behavior. Work only
+  through the experiment specifications under openspec/changes. Execute each
+  experiment as an isolated Arbor Executor worktree and branch, use the dev
+  evaluator for iteration, and reserve both held-out test sets for final
+  verification. Compare CTC, NRTR, LCB length, and NERD metrics, including
+  changed/helped/hurt cases and operation behavior. Do not modify the data or
+  evaluation harness to improve a score.
+
+coordinator:
+  cwd: .
+  max_cycles: 6
+  max_tree_depth: 2
+  executor_max_turns: 80
+  max_turns: 500
+  auto_git: true
+  base_branch: main
+  trunk_branch: arbor/trunk/editctc-nerd-lcb
+  require_base_branch: true
+  merge_threshold: 0.0
+  enforce_protected: true
+  contamination_probe: true
+  protected_paths:
+    - /datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data
+    - /datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test
+    - /datastore/cndt_thangcpd/linhtruong/workspace5/release_EditCTC/checkpoints/s1024
+  ui:
+    interaction_mode: review
+    allow_agent_questions: false
+    webui_port: null
+  budget_policy:
+    max_parallel_executors: 1
+  search:
+    builtin_backend: alphaxiv
+    grounded_ideation: false
+  convergence:
+    enabled: true
+    min_experiments: 4
