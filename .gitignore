@@ -14,6 +14,7 @@ checkpoints/
 output/
 *.log
 .arbor-venv/
+.arbor/
 
 .idea/
 .vscode/

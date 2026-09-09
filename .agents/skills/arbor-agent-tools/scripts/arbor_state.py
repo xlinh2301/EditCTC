@@ -19,7 +19,6 @@ import shlex
 import shutil
 import subprocess
 import sys
-import tempfile
 import time
 from pathlib import Path
 from typing import Any
@@ -862,7 +861,12 @@ def cmd_worktree(args: argparse.Namespace) -> None:
     tree = load_tree(args.cwd, args.run_name)
     n = node(tree, args.node_id)
     branch = args.branch or branch_name(args.branch_prefix, args.node_id, n.get("hypothesis", ""))
-    base = Path(tempfile.gettempdir()) / f"arbor-worktrees-{os.getuid()}"
+    base = Path(
+        os.environ.get(
+            "ARBOR_WORKTREE_ROOT",
+            "/datastore/cndt_thangcpd/linhtruong/workspace5/worktree",
+        )
+    )
     base.mkdir(parents=True, exist_ok=True)
     wt = base / branch.replace("/", "__").replace(".", "_")
     if wt.exists():
@@ -890,7 +894,12 @@ def cmd_merge(args: argparse.Namespace) -> None:
 
     eval_cmd_test = tree["meta"].get("eval_cmd_test")
     if test_score is None and eval_cmd_test:
-        base = Path(tempfile.gettempdir()) / f"arbor-merge-eval-{os.getuid()}"
+        base = Path(
+            os.environ.get(
+                "ARBOR_WORKTREE_ROOT",
+                "/datastore/cndt_thangcpd/linhtruong/workspace5/worktree",
+            )
+        ) / "merge-eval"
         wt = base / src.replace("/", "__").replace(".", "_")
         if wt.exists():
             git(args.cwd, "worktree", "remove", "--force", str(wt))

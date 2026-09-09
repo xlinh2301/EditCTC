@@ -82,6 +82,16 @@ active at a time. Each node owns its external output/checkpoint directory and
 its Arbor artifact directory under `.arbor/sessions/`; no node may reuse
 another node's output directory.
 
+All worktrees must be created below:
+
+```text
+/datastore/cndt_thangcpd/linhtruong/workspace5/worktree/
+```
+
+The native CLI uses `scripts/arbor_run.sh`, which exports `TMPDIR` before
+starting Arbor. The local fallback uses the same location by default and also
+accepts `ARBOR_WORKTREE_ROOT` for an explicit override.
+
 The planned nodes and their durable specs are:
 
 | Node | OpenSpec change | Purpose |

@@ -79,7 +79,7 @@ final trunk evaluation. A typical launch from a clean `main` checkout is:
 
 ```bash
 .arbor-venv/bin/arbor doctor
-.arbor-venv/bin/arbor run --yes \
+scripts/arbor_run.sh run --yes \
   --yes-cwd "$PWD" \
   --config research_config.yaml \
   --run-name editctc-nerd-lcb \
