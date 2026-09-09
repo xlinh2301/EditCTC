@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-09
+goal: Add a small differentiable consistency objective between predicted edits
+  and target length

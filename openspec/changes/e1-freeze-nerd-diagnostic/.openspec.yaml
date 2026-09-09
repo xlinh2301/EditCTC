@@ -1,0 +1,4 @@
+schema: spec-driven
+created: 2026-09-09
+goal: Test whether NERD can learn edit operations when the CTC seed and visual
+  encoder are fixed
