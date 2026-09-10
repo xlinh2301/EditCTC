@@ -1,16 +1,19 @@
 task: >
-  Improve EditCTC's natural-seed error correction so that NERD contributes
-  useful edits while preserving the existing CTC and NRTR behavior. Work only
-  through the experiment specifications under openspec/changes. Execute each
-  experiment as an isolated Arbor Executor worktree and branch, use the dev
-  evaluator for iteration, and reserve both held-out test sets for final
-  verification. Compare CTC, NRTR, LCB length, and NERD metrics, including
-  changed/helped/hurt cases and operation behavior. Do not modify the data or
-  evaluation harness to improve a score.
+  Improve EditCTC's natural-seed error correction through a gated E35-E39
+  experimental loop. First build and select a leakage-free Natural CTC Error
+  Bank (historical replay versus OOF), then train a KEEP-versus-REPLACE visual
+  scorer on actual encoder spans and evaluate selective correction at fixed
+  harm rates. If scorer discrimination fails, pivot through candidate-aware
+  contrastive fine-tuning and local visual refinement before opening
+  DELETE/INSERT, LCB, or multi-step refinement. Execute each experiment in an
+  isolated Arbor worktree/branch, use B_dev for iteration, reserve B_test for
+  final verification, and preserve all gate metrics and provenance. Stop after
+  2-3 controlled variants per hypothesis family; do not modify data or the eval
+  harness to improve a score.
 
 coordinator:
   cwd: .
-  max_cycles: 6
+  max_cycles: 20
   max_tree_depth: 2
   executor_max_turns: 80
   max_turns: 500
@@ -30,7 +33,7 @@ coordinator:
     allow_agent_questions: false
     webui_port: null
   budget_policy:
-    max_parallel_executors: 1
+    max_parallel_executors: 3
   search:
     builtin_backend: alphaxiv
     grounded_ideation: false
