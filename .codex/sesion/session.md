@@ -199,3 +199,8 @@
   V3 (`70517`) sets both loader batch size and sampler `first_bs` to 32 with
   fixed batch sizing, using 10 epochs/fold (about 160 updates/fold), under
   `e35-a-oof-fixed-v3`.
+- V3 reached 9 updates/epoch and sharply lowered CTC loss, but the first
+  empty decode still aborted the fold. V4 (`70518`) changes this to row-level
+  invalid-decode filtering with explicit invalid counts/rates, fails only when
+  a fold has no valid rows, and trains 30 epochs/fold under
+  `e35-a-oof-fixed-v4`.
