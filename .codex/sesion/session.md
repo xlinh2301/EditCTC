@@ -211,3 +211,14 @@
   sequences Top-3 `50`, Top-5 `91`. This is leakage-safe but fails the E35-A
   bank-quality gate, so E35-B must use the historical replay bank (285 rows)
   and the OOF artifact remains diagnostic only.
+
+## 2026-09-11 — Next gated branches dispatched
+
+- E35-B node `17`: visual KEEP-vs-REPLACE scorer on the selected historical
+  bank, with held-out benefit/risk and fixed-harm gates.
+- E36-B node `18`: candidate-query visual cross-attention probe using the same
+  bank/split after E36-A1 failed.
+- E37-A node `19`: counterfactual transition-bank densification before any
+  verifier retraining, since E37-B/C had only four wrong-to-correct groups.
+- All three run in isolated agent worktrees; no inference or B_test is allowed
+  until their gates pass.
