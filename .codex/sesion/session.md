@@ -257,3 +257,12 @@
   oracle `0/1`. This confirms the current span representation cannot safely
   choose GT even after removing the KEEP gate. Report:
   `worktree/agent__loop-e36-e/results/21-e36-e-oracle/results.md`.
+
+## 2026-09-11 — E37-B2 verifier complete
+
+- E37-B2 retrained the independent verifier on the balanced E37-A transition
+  bank. It over-promoted edits: held-out `P(V_good > V_seed)=1.0`, but
+  `P(V_seed > V_harmful)=0.0`, with `changed/helped/hurt=82/0/77` and zero
+  edit precision. The densified bank alone does not solve verifier safety;
+  inference remains locked. Report:
+  `worktree/agent__loop-e37-b2/results/20-e37-b2-verifier/results.md`.
