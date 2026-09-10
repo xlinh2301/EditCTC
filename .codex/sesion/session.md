@@ -240,3 +240,11 @@
   `19,327`. Report:
   `worktree/agent__loop-e37-a/results/19-e37-a-counterfactual-bank/results.md`.
 - No branch passed a deployment gate; no inference or B_test was run.
+
+## 2026-09-11 — E37-B2 and E36-E dispatched
+
+- E37-B2 node `20` retrains the independent sequence verifier on the balanced
+  280-row E37-A transition bank; it remains probe-only until held-out
+  `good > seed` and `seed > harmful` gates pass.
+- E36-E node `21` runs the visual oracle with KEEP removed to test whether the
+  actual encoder and candidate set can select GT at all.
