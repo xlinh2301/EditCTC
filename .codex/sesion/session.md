@@ -204,3 +204,10 @@
   invalid-decode filtering with explicit invalid counts/rates, fails only when
   a fold has no valid rows, and trains 30 epochs/fold under
   `e35-a-oof-fixed-v4`.
+- V4 completed with disjoint folds and compact audits. It retained 424 valid
+  rows and filtered 88 invalid decodes; all 424 were CTC-wrong and there were
+  no hard KEEP rows. Sequence audit found 285 substitution alignments, GT
+  Top-3 `71/285` (24.9%), Top-5 `118/285` (41.4%), and fully-fixable
+  sequences Top-3 `50`, Top-5 `91`. This is leakage-safe but fails the E35-A
+  bank-quality gate, so E35-B must use the historical replay bank (285 rows)
+  and the OOF artifact remains diagnostic only.
