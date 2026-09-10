@@ -194,3 +194,8 @@
   run (`70516`) therefore uses valid scratch OOF training with batch size 32
   and 20 epochs per fold, plus the same compact logging and contamination
   guards, under `e35-a-oof-fixed-v2`.
+- V2 was stopped after log inspection showed `MultiScaleSampler.first_bs=128`
+  still limited training to three updates per epoch despite the loader override.
+  V3 (`70517`) sets both loader batch size and sampler `first_bs` to 32 with
+  fixed batch sizing, using 10 epochs/fold (about 160 updates/fold), under
+  `e35-a-oof-fixed-v3`.
