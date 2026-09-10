@@ -222,3 +222,21 @@
   verifier retraining, since E37-B/C had only four wrong-to-correct groups.
 - All three run in isolated agent worktrees; no inference or B_test is allowed
   until their gates pass.
+
+## 2026-09-11 — E35-B/E36-B/E37-A completed
+
+- E35-B node `17` used the historical bank with an aligned image-span proxy.
+  AUROC was `0.9714` and `KEEP > harmful = 0.9565`, but `good > KEEP = 0.50`,
+  `helped = 0`, and `hurt = 2`; selective gate failed. Report:
+  `worktree/agent__loop-e35-b/results/16-e35-b-visual/results.md`.
+- E36-B node `18` tested candidate-query attention. It reached
+  `KEEP > harmful = 0.9519`, but `good > KEEP = 0` and AUROC `0.1474`; gate
+  failed and inference remains unchanged. Report:
+  `worktree/agent__loop-e36-b/results/18-e36-b-candidate-query/results.md`.
+- E37-A node `19` completed counterfactual densification with 695 groups,
+  23,001 candidates, zero source overlap, and a balanced 280-row trajectory
+  bank (70 rows per class). Taxonomy totals were wrong-to-correct `70`,
+  wrong-to-better-wrong `159`, wrong-to-worse `2,107`, and correct-to-wrong
+  `19,327`. Report:
+  `worktree/agent__loop-e37-a/results/19-e37-a-counterfactual-bank/results.md`.
+- No branch passed a deployment gate; no inference or B_test was run.
