@@ -248,3 +248,12 @@
   `good > seed` and `seed > harmful` gates pass.
 - E36-E node `21` runs the visual oracle with KEEP removed to test whether the
   actual encoder and candidate set can select GT at all.
+
+## 2026-09-11 — E36-E oracle complete
+
+- E36-E node `21` is diagnostic-only and fails visual selection: held-out
+  candidate coverage was `10/12 = 0.8333`, visual token oracle accuracy
+  `3/10 = 0.30`, fully-fixable sequences `1/3`, and full-sequence visual
+  oracle `0/1`. This confirms the current span representation cannot safely
+  choose GT even after removing the KEEP gate. Report:
+  `worktree/agent__loop-e36-e/results/21-e36-e-oracle/results.md`.
