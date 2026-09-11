@@ -495,3 +495,10 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
   exposed the launcher passing the string `None` as `Global.checkpoints`; the
   smoke launcher now leaves that field unset and job `70803` is the clean retry.
   No production checkpoint has been changed.
+- Arbor loop was reset to the E41-E44 improvement tree. Nodes `29`–`32` are
+  registered with isolated prompts: integrated NRTR architecture, Top-K/span
+  instrumentation, larger Indomain bridge bank, and conditional verifier.
+  Node `29` is done after job `70803`: architecture loaded and trained one
+  epoch with finite losses (`EditActivationRate≈0.11`), validation accuracy
+  `0.8854` versus `0.8902` baseline. Nodes `30`–`32` remain pending behind
+  their stated coverage/data gates.
