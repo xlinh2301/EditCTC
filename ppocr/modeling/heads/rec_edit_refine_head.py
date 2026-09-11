@@ -317,6 +317,9 @@ class MultiHeadEditRefine(MultiHead):
             dropout=kwargs.get("edit_dropout", 0.1),
             head_dropout=kwargs.get("edit_head_dropout", 0.2),
         )
+        # Optional eval-only operation mask used by controlled transfer
+        # diagnostics (e.g. KEEP/REPLACE substitution-only).
+        self.edit_allowed_ops = kwargs.get("edit_allowed_ops")
 
     def forward(self, x, targets=None):
         if self.use_pool:
@@ -376,6 +379,11 @@ class MultiHeadEditRefine(MultiHead):
             seed_ids=seeds,
             seed_lens=paddle.to_tensor(seed_lens_np, dtype="int64"),
         )
+        if self.edit_allowed_ops is not None:
+            blocked = [i for i in range(edit_out["op_logits"].shape[-1])
+                       if i not in self.edit_allowed_ops]
+            if blocked:
+                edit_out["op_logits"][:, :, blocked] = -1e9
         op_ids = paddle.argmax(edit_out["op_logits"], axis=2).numpy()
         tok_ids = paddle.argmax(edit_out["tok_logits"], axis=2).numpy()
 

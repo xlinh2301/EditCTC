@@ -245,6 +245,12 @@ def main():
         config["Architecture"]["Backbone"]["is_export"] = True
         config["Architecture"]["Head"]["is_export"] = True
 
+    # Controlled transfer diagnostic: retain only KEEP/REPLACE operations at
+    # inference time. Training checkpoints remain unchanged.
+    substitution_only = config["Global"].get("edit_substitution_only", False)
+    if str(substitution_only).lower() in ("true", "1", "yes"):
+        config["Architecture"]["Head"]["edit_allowed_ops"] = [0, 1]
+
     model = build_model(config["Architecture"])
 
     load_model(config, model)
