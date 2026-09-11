@@ -453,5 +453,12 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
   final accuracy but still failed safety: Cross `24.63%`, `helped=10`,
   `hurt=779`; Indomain `44.13%`, `helped=2`, `hurt=292`. This confirms the
   natural bank moves the model toward the right distribution but is too small
-  to learn a safe correction boundary. Held-out natural-bank validation is
-  running as job `70749`.
+  to learn a safe correction boundary. The separate held-out evaluator
+  `70749` was canceled after hanging without output; it is not used as a gate.
+- Offline replay of job `70750` with only `REPLACE` operations allowed reduced
+  damage substantially (Cross `103` hurt / `1` helped; Indomain `34` hurt /
+  `1` helped), while the full operation set produced `779`/`292` hurt. This
+  isolates INSERT/DELETE as the dominant over-edit source, but replacement
+  discrimination is still absent. The next branch stays substitution-only
+  with explicit CTC Top-K candidates and a KEEP gate; DELETE/INSERT remain
+  disabled for synthetic-head transfer.
