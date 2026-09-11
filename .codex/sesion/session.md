@@ -438,3 +438,8 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
   only the edit head with the synthetic checkpoint as initialization and hold
   Cross locked for evaluation. Add a selective verifier/gate only after this
   bank produces `helped > hurt` on held-out Indomain.
+- Submitted natural-bank dump job `70745`, which exposed a stale config
+  override pointing to a deleted text-pretrain path; no inference data was
+  produced. The launcher now explicitly sets
+  `Global.edit_refine_pretrained=None` for the frozen CTC dump (commit
+  `e6fe708`) and was resubmitted as job `70746`.

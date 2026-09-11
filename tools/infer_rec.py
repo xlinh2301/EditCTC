@@ -253,7 +253,7 @@ def main():
     # CTC checkpoint so real-data transfer tests keep the frozen visual/CTC
     # path and replace matching edit tensors only.
     extra_pretrained = config["Global"].get("edit_refine_pretrained")
-    if extra_pretrained:
+    if extra_pretrained and str(extra_pretrained).lower() not in ("none", "null"):
         logger.info("partial-loading edit refinement checkpoint: {}".format(extra_pretrained))
         load_pretrained_params(model, extra_pretrained)
 
