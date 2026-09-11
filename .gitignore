@@ -13,6 +13,7 @@ checkpoint/
 checkpoints/
 output/
 *.log
+slurm-*.out
 .arbor-venv/
 .arbor/
 
