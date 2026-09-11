@@ -47,6 +47,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", type=Path, required=True)
     ap.add_argument("--checkpoint", type=Path, required=True)
+    ap.add_argument("--base-checkpoint", type=Path, required=True,
+                    help="frozen CTC/backbone checkpoint used during visual pretraining")
     ap.add_argument("--manifest", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--max-samples", type=int, default=4000)
@@ -60,7 +62,7 @@ def main():
     cfg["Architecture"]["Head"]["out_channels_list"] = {
         "CTCLabelDecode": chars, "NRTRLabelDecode": chars + 3
     }
-    cfg["Global"]["checkpoints"] = str(args.checkpoint)
+    cfg["Global"]["checkpoints"] = str(args.base_checkpoint)
     cfg["Global"]["pretrained_model"] = None
     model = build_model(cfg["Architecture"])
     load_model(cfg, model)
@@ -115,6 +117,7 @@ def main():
         counts["token_valid"] += int(tv.sum()); counts["token_correct"] += int((tv & (tok_p == tok_t)).sum())
     result = {
         "experiment": "E40-visual-synthetic-eval", "checkpoint": str(args.checkpoint),
+        "base_checkpoint": str(args.base_checkpoint),
         "rows": counts["rows"], "wrong_seed": counts["wrong_seed"],
         "seed_exact": counts["seed_exact"], "refined_exact": counts["refined_exact"],
         "changed": counts["changed"], "helped": counts["helped"], "hurt": counts["hurt"],
