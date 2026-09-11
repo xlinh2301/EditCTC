@@ -397,3 +397,11 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
 - Text job now logs held-out synthetic non-KEEP recall, KEEP precision, and
   token-target accuracy each epoch; a falling loss alone is not considered a
   successful edit-pretraining gate.
+- Retry `70652` completed successfully after the module-path fix, and visual
+  job `70648` completed successfully. Checkpoints are stored under
+  `.../e40/text_mechanics/editrefine_pretrained.pdparams` and
+  `.../e40/visual_synthetic/editrefine_visual_pretrained.pdparams`.
+- Added `tools/eval_editrefine_visual.py` and submitted validation job `70698`
+  for explicit-seed synthetic `helped/hurt`, operation recall, and KEEP
+  precision. This remains pre-integration; real Indomain/Cross evaluation must
+  use natural CTC seeds afterward.
