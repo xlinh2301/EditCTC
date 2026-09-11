@@ -304,3 +304,16 @@
   make sequence correction identifiable. The E36 post-hoc substitution
   branch is therefore closed; no scorer/verifier inference integration is
   allowed.
+
+## 2026-09-11 — Cross-data evaluation-only loop dispatched
+
+- User requested cross-data testing because Indomain has few natural errors.
+- Cross split: `1148` labels, `1145` evaluated (`3` missing images). Existing
+  checkpoint-only audit is used; no training or fitting on Cross-data.
+- Parallel audits dispatched:
+  - Arbor node `27`: candidate/error taxonomy and E34/E35-style Top-K audit.
+  - Arbor node `25`: E36 span/raw-crop visual oracle comparison.
+  - Arbor node `26`: E37 counterfactual sequence-transition audit.
+- Compare against existing Indomain test audit (`562` evaluated) before changing
+  the roadmap. Append artifacts and cross-vs-Indomain conclusions when reports
+  complete.
