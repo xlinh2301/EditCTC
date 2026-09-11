@@ -377,3 +377,8 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
   visual loading. The script is syntax-checked but not run locally because the
   CPU environment lacks Paddle's CUDA runtime; GPU execution belongs on the
   configured training node after the corpus is complete.
+- Added `tools/filter_ctc_synth_manifest.py`: after frozen-CTC inference, it
+  replaces rule seeds with actual CTC seeds and retains natural errors plus
+  low-margin hard KEEP rows. This is the required bridge from synthetic
+  mechanics to visual transfer; raw rule rows are never treated as deployment
+  evidence.
