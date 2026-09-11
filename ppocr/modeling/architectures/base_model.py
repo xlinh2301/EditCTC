@@ -86,6 +86,7 @@ class BaseModel(nn.Layer):
 
     def forward(self, x, data=None):
         y = dict()
+        original_x = x
         if self.use_transform:
             x = self.transform(x)
         if self.use_backbone:
@@ -103,7 +104,10 @@ class BaseModel(nn.Layer):
                 y["neck_out"] = x
             final_name = "neck_out"
         if self.use_head:
-            x = self.head(x, targets=data)
+            if getattr(self.head, "use_original_image", False):
+                x = self.head(x, targets=data, original_image=original_x)
+            else:
+                x = self.head(x, targets=data)
             # for multi head, save ctc neck out for udml
             if isinstance(x, dict) and "ctc_neck" in x.keys():
                 y["neck_out"] = x["ctc_neck"]

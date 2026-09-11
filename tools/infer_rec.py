@@ -226,6 +226,7 @@ def main():
             "MultiHead",
             "MultiHeadEditRefine",
             "MultiHeadEditRefineUncertainty",
+            "MultiHeadEditRefineNRTR",
         ]:  # multi head, including EditCTC custom heads
             out_channels_list = {}
             char_num = len(getattr(post_process_class, "character"))

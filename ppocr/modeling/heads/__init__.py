@@ -23,9 +23,11 @@ __all__ = ["build_head"]
 
 def build_head(config):
     from .rec_edit_refine_head_uncertainty import MultiHeadEditRefineUncertainty
+    from .rec_edit_refine_nrtr_head import MultiHeadEditRefineNRTR
 
     support_dict = [
         "MultiHeadEditRefineUncertainty",
+        "MultiHeadEditRefineNRTR",
     ]
 
     module_name = config.pop("name")
