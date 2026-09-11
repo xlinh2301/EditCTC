@@ -288,3 +288,9 @@
   does not repair the verifier score geometry. Report:
   `worktree/agent__loop-e37-c/results/22-e37-c-risk-verifier/results.md`.
 - No inference integration or B_test is permitted after these failures.
+
+## 2026-09-11 — E36-G final pooling diagnostic dispatched
+
+- E36-G node `24` tests a high-resolution local crop oracle for aligned token
+  spans. It is the final diagnostic before pivoting away from post-hoc
+  substitution correction; inference and B_test remain locked.
