@@ -462,3 +462,15 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
   discrimination is still absent. The next branch stays substitution-only
   with explicit CTC Top-K candidates and a KEEP gate; DELETE/INSERT remain
   disabled for synthetic-head transfer.
+- Implemented the eval-only substitution mask for both `MultiHeadEditRefine`
+  and `MultiHeadEditRefineUncertainty` (the first `70752` run was invalid
+  because the uncertainty path had not yet received the mask). Correct rerun
+  `70754` gives Cross `65.76%`, `changed=343`, `helped=3`, `hurt=301`, and
+  Indomain `79.72%`, `changed=101`, `helped=1`, `hurt=91`. This confirms the
+  operation mask removes much of the length-edit damage, but REPLACE token
+  discrimination still fails `helped > hurt` by a wide margin.
+- E40 is therefore closed as a mechanics/pretraining probe, not a deployable
+  correction model. The next implementation must expose full CTC frame Top-K
+  identities and collapsed token spans, then train a substitution-only
+  candidate scorer/verifier with KEEP always present; no synthetic INSERT or
+  DELETE transfer will be connected to inference.
