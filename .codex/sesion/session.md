@@ -387,3 +387,6 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
   existing visual EditRefineDecoder, optionally loads Stage-0 text tensors, and
   saves only edit-head weights. It has not been run yet; the local environment
   cannot load Paddle CUDA.
+- Submitted GPU jobs `70647` (text mechanics) and `70648` (visual synthetic).
+  Job `70648` waits for both the corpus summary and the Stage-0 text checkpoint,
+  so visual training cannot start prematurely.
