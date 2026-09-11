@@ -474,3 +474,21 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
   identities and collapsed token spans, then train a substitution-only
   candidate scorer/verifier with KEEP always present; no synthetic INSERT or
   DELETE transfer will be connected to inference.
+-
+## 2026-09-12 — E41 integrated NRTR EditCTC prototype
+
+- User requested replacing the separate EditCTC decoder with an NRTR-pretrained
+  decoder that consumes feature-map memory, the original image, and the CTC
+  seed, while removing the standalone NRTR loss branch.
+- Added `MultiHeadEditRefineNRTR`: CTC remains the seed path; the pretrained
+  `gtc_head` Transformer is reused under the same checkpoint keys, receives
+  CTC seed ids mapped into NRTR vocabulary, and cross-attends to concatenated
+  CTC memory plus compact raw-image tokens. Its hidden states feed only edit-op
+  and replacement-token heads. The training output contains CTC, length, and
+  edit losses; no `gtc` output or `NRTRLoss` is used.
+- `BaseModel` now passes the input image to heads that opt into
+  `use_original_image`. New config:
+  `config/PP-OCRv6_small_rec_s1024_nrtr_integrated.yml`.
+- Smoke job `70800` exposed missing output-channel registration for the new
+  head and was superseded. Training setup was fixed in commit `9cf6127` and
+  retry job `70801` is running. No production checkpoint has been changed.

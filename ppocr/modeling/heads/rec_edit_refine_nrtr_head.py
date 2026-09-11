@@ -82,7 +82,7 @@ class MultiHeadEditRefineNRTR(MultiHead):
             if rows:
                 weight = self.edit_tok_head.weight.numpy()
                 src_weight = src.numpy()
-                weight[: len(rows)] = src_weight[rows]
+                weight[:, : len(rows)] = src_weight[:, rows]
                 self.edit_tok_head.weight.set_value(weight)
                 bias = self.edit_tok_head.bias.numpy()
                 bias[: len(rows)] = 0.0
