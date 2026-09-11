@@ -1,0 +1,4 @@
+schema: spec-driven
+name: e40-rendered-visual-edit-pretrain
+status: proposed
+summary: Rendered visual pretraining for NERD edit mechanics and visual transfer

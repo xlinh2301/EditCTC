@@ -352,4 +352,22 @@ new training. If candidate coverage remains low, fix proposal generation first;
 do not train another verifier on a candidate set that cannot contain the answer.
 If coverage is adequate, train only on non-Cross data and evaluate the verifier
 on Cross as a locked external test, with `helped > hurt` and correction recall at
-fixed harm rates as gates.
+  fixed harm rates as gates.
+
+## 2026-09-11 — E40 rendered visual pretraining started
+
+- User proposed learning edit mechanics from hundreds of thousands of rule
+  samples and then adding synthetic images before real-pipeline integration.
+- This revises the earlier E31/E32 lesson: E31 text-only pretraining generated
+  `22,158` rows but produced zero real-image edits; E32 visual seed corruption
+  also produced zero B_dev edits. Raw text/rule seeds are therefore mechanics
+  bootstrap only, not transfer evidence.
+- Added `tools/generate_visual_edit_corpus.py` and OpenSpec
+  `openspec/changes/e40-rendered-visual-edit-pretrain/`. It renders clean GT
+  meter-like images at `[3,48,320]`, creates confusion-aware
+  KEEP/REPLACE/INSERT/DELETE seeds separately, and records a JSONL manifest.
+- A `200,000`-row corpus generation job is running under
+  `/datastore/cndt_thangcpd/linhtruong/workspace5/Data/EditCTC_synth/visual_edit_v1`.
+  Frozen CTC inference must filter rows to authentic CTC errors/ambiguities
+  before NERD transfer. Cross-data remains evaluation-only.
+- Arbor node `28` tracks E40. No model checkpoint has been changed yet.
