@@ -371,3 +371,9 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
   Frozen CTC inference must filter rows to authentic CTC errors/ambiguities
   before NERD transfer. Cross-data remains evaluation-only.
 - Arbor node `28` tracks E40. No model checkpoint has been changed yet.
+- Added `tools/pretrain_editrefine_text.py` for Stage-0 mechanics pretraining.
+  It uses the existing `EditRefineDecoder` with null visual memory, balanced
+  operation weights, and saves only `head.edit_refine_head.*` tensors for later
+  visual loading. The script is syntax-checked but not run locally because the
+  CPU environment lacks Paddle's CUDA runtime; GPU execution belongs on the
+  configured training node after the corpus is complete.
