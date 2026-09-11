@@ -118,8 +118,9 @@ def main(config, device, logger, vdl_writer):
             "MultiHead",
             "MultiHeadInterCTC",
             "MultiHeadEditRefine",
-    "MultiHeadEditRefineUncertainty",
-    "MultiHeadEditRefineErrDet",
+            "MultiHeadEditRefineUncertainty",
+            "MultiHeadEditRefineNRTR",
+            "MultiHeadEditRefineErrDet",
         ):  # for multi head (incl. intermediate-CTC/PAE and edit-refine variants)
             if config["PostProcess"]["name"] == "SARLabelDecode":
                 char_num = char_num - 2
@@ -138,7 +139,10 @@ def main(config, device, logger, vdl_writer):
                         char_num + 1
                     )
                 out_channels_list["SARLabelDecode"] = char_num + 2
-            elif list(config["Loss"]["loss_config_list"][1].keys())[0] == "NRTRLoss":
+            elif (
+                list(config["Loss"]["loss_config_list"][1].keys())[0] == "NRTRLoss"
+                or config["Architecture"]["Head"]["name"] == "MultiHeadEditRefineNRTR"
+            ):
                 out_channels_list["NRTRLabelDecode"] = char_num + 3
             config["Architecture"]["Head"]["out_channels_list"] = out_channels_list
         else:  # base rec model
