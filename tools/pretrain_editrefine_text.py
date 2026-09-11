@@ -59,9 +59,15 @@ def read_rows(path: Path, max_samples: int | None):
     return rows
 
 
+def ctc_vocab_size(dict_path: Path, use_space_char: bool = True):
+    n = len(dict_path.read_text(encoding="utf-8").splitlines())
+    return n + 1 + int(use_space_char)  # CTC blank + dictionary (+ space)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--manifest", type=Path, required=True)
+    ap.add_argument("--dict-path", type=Path, default=Path("ppocr/utils/dict/ppocrv6_dict.txt"))
     ap.add_argument("--out", type=Path, required=True, help="checkpoint prefix")
     ap.add_argument("--max-samples", type=int, default=200_000)
     ap.add_argument("--max-len", type=int, default=25)
@@ -90,7 +96,7 @@ def main():
     )
     model = EditRefineDecoder(
         in_channels=args.edit_dim,
-        vocab_size=18709,
+        vocab_size=ctc_vocab_size(args.dict_path),
         edit_dim=args.edit_dim,
         num_layers=args.layers,
         nhead=args.nhead,
