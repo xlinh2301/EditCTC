@@ -68,6 +68,15 @@ def rows_from_manifest(path: Path, root: Path, max_samples: int):
     return rows
 
 
+def balance_rows(rows, positive_repeat):
+    """Oversample authentic wrong seeds while retaining every hard KEEP row."""
+    if positive_repeat <= 1:
+        return rows
+    positives = [r for r in rows if r.get("wrong_seed")]
+    others = [r for r in rows if not r.get("wrong_seed")]
+    return others + positives * int(positive_repeat)
+
+
 def build_cfg(path: Path):
     cfg = yaml.safe_load(path.read_text(encoding="utf-8"))
     cfg["Global"]["distributed"] = False
@@ -85,6 +94,8 @@ def main():
     ap.add_argument("--config", type=Path, required=True)
     ap.add_argument("--checkpoint", type=Path, required=True)
     ap.add_argument("--text-checkpoint", type=Path, default=None)
+    ap.add_argument("--init-edit-checkpoint", type=Path, default=None,
+                    help="optional edit-only checkpoint loaded after text init")
     ap.add_argument("--manifest", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--max-samples", type=int, default=200_000)
@@ -92,6 +103,8 @@ def main():
     ap.add_argument("--epochs", type=int, default=5)
     ap.add_argument("--batch-size", type=int, default=128)
     ap.add_argument("--lr", type=float, default=3e-4)
+    ap.add_argument("--positive-repeat", type=int, default=1,
+                    help="repeat natural wrong-seed rows for balanced adaptation")
     args = ap.parse_args()
     paddle.set_device("gpu" if paddle.is_compiled_with_cuda() else "cpu")
     cfg, vocab_size = build_cfg(args.config)
@@ -101,6 +114,8 @@ def main():
     load_model(cfg, model)
     if args.text_checkpoint:
         load_pretrained_params(model, str(args.text_checkpoint))
+    if args.init_edit_checkpoint:
+        load_pretrained_params(model, str(args.init_edit_checkpoint))
     for p in model.parameters():
         p.stop_gradient = True
     edit = model.head.edit_refine_head
@@ -111,6 +126,8 @@ def main():
     rows = rows_from_manifest(args.manifest, root, args.max_samples)
     train_rows = [r for r in rows if r.get("split") != "val"]
     val_rows = [r for r in rows if r.get("split") == "val"]
+    positive_repeat = int(getattr(args, "positive_repeat", 1))
+    train_rows = balance_rows(train_rows, positive_repeat)
     loader = paddle.io.DataLoader(VisualDataset(train_rows, root, args.max_len), batch_size=args.batch_size, shuffle=True, drop_last=True, num_workers=0)
     optimizer = paddle.optimizer.Adam(learning_rate=args.lr, parameters=edit.parameters())
     history = []
@@ -141,6 +158,8 @@ def main():
     (args.out.parent / (args.out.name + ".json")).write_text(json.dumps({
         "stage": "visual_synthetic_edit_pretrain", "rows": len(rows),
         "train_rows": len(train_rows), "val_rows": len(val_rows),
+        "positive_repeat": positive_repeat,
+        "init_edit_checkpoint": str(args.init_edit_checkpoint) if args.init_edit_checkpoint else None,
         "history": history, "frozen_ctc": True,
         "cross_data_used_for_training": False,
     }, indent=2) + "\n", encoding="utf-8")
