@@ -1,0 +1,644 @@
+{
+  "crossdata": {
+    "split": "crossdata",
+    "n_rows": 1145,
+    "label_count": 1148,
+    "missing_rows": 0,
+    "prediction_audit_mismatches": 0,
+    "sequence": {
+      "ctc_correct": 1051,
+      "ctc_accuracy": 0.9179039301310044,
+      "nrtr_correct": 1018,
+      "nrtr_accuracy": 0.8890829694323145,
+      "nerd_final_correct": 1051,
+      "nerd_final_accuracy": 0.9179039301310044,
+      "nerd_changed": 0,
+      "nerd_helped": 0,
+      "nerd_hurt": 0,
+      "lcb_length_correct": 990,
+      "lcb_length_accuracy": 0.8646288209606987
+    },
+    "natural_error_taxonomy": {
+      "correct": 1051,
+      "insertion_only": 52,
+      "substitution_only": 26,
+      "mixed_length": 4,
+      "deletion_only": 12
+    },
+    "aligned_char_ops": {
+      "M": 5785,
+      "I": 56,
+      "S": 35,
+      "D": 18
+    },
+    "length_pairs": {
+      "4->4": 6,
+      "5->4": 2,
+      "5->5": 977,
+      "5->6": 10,
+      "5->7": 1,
+      "6->5": 50,
+      "6->6": 92,
+      "6->8": 1,
+      "7->7": 4,
+      "8->8": 2
+    },
+    "confidence": {
+      "ctc": {
+        "correct": {
+          "n": 1051,
+          "mean": 0.9962865740883134,
+          "q10": 0.996854305267334,
+          "median": 0.9999707341194153,
+          "q90": 0.9999971389770508
+        },
+        "wrong": {
+          "n": 94,
+          "mean": 0.9760605122180696,
+          "q10": 0.915290892124176,
+          "median": 0.9967171549797058,
+          "q90": 0.9999948740005493
+        }
+      },
+      "min_emitted_prob": {
+        "correct": {
+          "n": 1051,
+          "mean": 0.9818239434915537,
+          "q10": 0.9849221110343933,
+          "median": 0.9998912811279297,
+          "q90": 0.9999932050704956
+        },
+        "wrong": {
+          "n": 94,
+          "mean": 0.8873118980133787,
+          "q10": 0.5632999539375305,
+          "median": 0.9863650798797607,
+          "q90": 0.9999816417694092
+        }
+      },
+      "min_emitted_margin": {
+        "correct": {
+          "n": 1051,
+          "mean": 0.9652339290703034,
+          "q10": 0.9709450751543045,
+          "median": 0.9998094770635362,
+          "q90": 0.9999899063614066
+        },
+        "wrong": {
+          "n": 94,
+          "mean": 0.7931580710084384,
+          "q10": 0.2111598551273346,
+          "median": 0.9734078366309404,
+          "q90": 0.9999752691028334
+        }
+      }
+    },
+    "candidate_topk": {
+      "available": false,
+      "reason": "branch_audit frame_trace stores only top1 token/probability and top1-top2 margin; no top-3/top-5 token identities."
+    },
+    "lowest_margin_wrong_examples": [
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_01115.jpg",
+        "gt": "00353",
+        "ctc": "m00353",
+        "ctc_conf": 0.915290892124176,
+        "min_emitted_margin": 0.03252127766609192,
+        "edit": {
+          "M": 5,
+          "D": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_01138.jpg",
+        "gt": "000138",
+        "ctc": "03030133",
+        "ctc_conf": 0.8814473152160645,
+        "min_emitted_margin": 0.037982434034347534,
+        "edit": {
+          "S": 1,
+          "M": 5,
+          "D": 2
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00538.jpg",
+        "gt": "00553",
+        "ctc": "005531",
+        "ctc_conf": 0.919283926486969,
+        "min_emitted_margin": 0.08960232138633728,
+        "edit": {
+          "D": 1,
+          "M": 5
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00188.jpg",
+        "gt": "00360",
+        "ctc": "00368",
+        "ctc_conf": 0.9025915861129761,
+        "min_emitted_margin": 0.0955418050289154,
+        "edit": {
+          "S": 1,
+          "M": 4
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00751.jpg",
+        "gt": "00063",
+        "ctc": "00065",
+        "ctc_conf": 0.9115909337997437,
+        "min_emitted_margin": 0.12258046865463257,
+        "edit": {
+          "S": 1,
+          "M": 4
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00168.jpg",
+        "gt": "00350",
+        "ctc": "00550",
+        "ctc_conf": 0.9041872024536133,
+        "min_emitted_margin": 0.1816592812538147,
+        "edit": {
+          "M": 4,
+          "S": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00627.jpg",
+        "gt": "00854",
+        "ctc": "00853",
+        "ctc_conf": 0.8852165341377258,
+        "min_emitted_margin": 0.19778427481651306,
+        "edit": {
+          "S": 1,
+          "M": 4
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00876.jpg",
+        "gt": "00105",
+        "ctc": "00005",
+        "ctc_conf": 0.9050132632255554,
+        "min_emitted_margin": 0.1995299756526947,
+        "edit": {
+          "M": 4,
+          "S": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00852.jpg",
+        "gt": "003339",
+        "ctc": "00353",
+        "ctc_conf": 0.7637004256248474,
+        "min_emitted_margin": 0.21043017506599426,
+        "edit": {
+          "I": 1,
+          "M": 4,
+          "S": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00868.jpg",
+        "gt": "00331",
+        "ctc": "00531",
+        "ctc_conf": 0.9184513092041016,
+        "min_emitted_margin": 0.2111598551273346,
+        "edit": {
+          "M": 4,
+          "S": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00774.jpg",
+        "gt": "00195",
+        "ctc": "00495",
+        "ctc_conf": 0.9125924110412598,
+        "min_emitted_margin": 0.2533426880836487,
+        "edit": {
+          "M": 4,
+          "S": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00227.jpg",
+        "gt": "00015",
+        "ctc": "000135",
+        "ctc_conf": 0.937993586063385,
+        "min_emitted_margin": 0.2832643687725067,
+        "edit": {
+          "M": 5,
+          "D": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00683.jpg",
+        "gt": "00332",
+        "ctc": "00552",
+        "ctc_conf": 0.9114715456962585,
+        "min_emitted_margin": 0.3249954879283905,
+        "edit": {
+          "M": 3,
+          "S": 2
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00145.jpg",
+        "gt": "00590",
+        "ctc": "005900",
+        "ctc_conf": 0.9494531750679016,
+        "min_emitted_margin": 0.40798601508140564,
+        "edit": {
+          "M": 5,
+          "D": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00941.jpg",
+        "gt": "00022",
+        "ctc": "00023",
+        "ctc_conf": 0.9388129115104675,
+        "min_emitted_margin": 0.4357982277870178,
+        "edit": {
+          "S": 1,
+          "M": 4
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00292.jpg",
+        "gt": "00741",
+        "ctc": "0073431",
+        "ctc_conf": 0.9598388671875,
+        "min_emitted_margin": 0.44891244173049927,
+        "edit": {
+          "M": 5,
+          "D": 2
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00030.jpg",
+        "gt": "001993",
+        "ctc": "000199",
+        "ctc_conf": 0.9555149674415588,
+        "min_emitted_margin": 0.47170332074165344,
+        "edit": {
+          "I": 1,
+          "M": 5,
+          "D": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00307.jpg",
+        "gt": "00199",
+        "ctc": "00189",
+        "ctc_conf": 0.9316869974136353,
+        "min_emitted_margin": 0.5074541419744492,
+        "edit": {
+          "M": 4,
+          "S": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00418.jpg",
+        "gt": "00886",
+        "ctc": "00386",
+        "ctc_conf": 0.949001669883728,
+        "min_emitted_margin": 0.5078610628843307,
+        "edit": {
+          "M": 4,
+          "S": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Cross-data/crops/cross_00006.jpg",
+        "gt": "00273",
+        "ctc": "00373",
+        "ctc_conf": 0.9489458203315735,
+        "min_emitted_margin": 0.5452273786067963,
+        "edit": {
+          "M": 4,
+          "S": 1
+        }
+      }
+    ]
+  },
+  "indomain_test": {
+    "split": "indomain_test",
+    "n_rows": 562,
+    "label_count": 562,
+    "missing_rows": 0,
+    "prediction_audit_mismatches": 0,
+    "sequence": {
+      "ctc_correct": 538,
+      "ctc_accuracy": 0.9572953736654805,
+      "nrtr_correct": 535,
+      "nrtr_accuracy": 0.9519572953736655,
+      "nerd_final_correct": 538,
+      "nerd_final_accuracy": 0.9572953736654805,
+      "nerd_changed": 0,
+      "nerd_helped": 0,
+      "nerd_hurt": 0,
+      "lcb_length_correct": 495,
+      "lcb_length_accuracy": 0.8807829181494662
+    },
+    "natural_error_taxonomy": {
+      "correct": 538,
+      "substitution_only": 13,
+      "insertion_only": 7,
+      "deletion_only": 4
+    },
+    "aligned_char_ops": {
+      "M": 2564,
+      "S": 15,
+      "I": 7,
+      "D": 5
+    },
+    "length_pairs": {
+      "3->3": 3,
+      "4->4": 223,
+      "4->5": 3,
+      "5->4": 2,
+      "5->5": 324,
+      "6->5": 5,
+      "6->6": 1,
+      "7->9": 1
+    },
+    "confidence": {
+      "ctc": {
+        "correct": {
+          "n": 538,
+          "mean": 0.9973011826715504,
+          "q10": 0.9983795285224915,
+          "median": 0.9999871253967285,
+          "q90": 0.9999983906745911
+        },
+        "wrong": {
+          "n": 24,
+          "mean": 0.9545823509494463,
+          "q10": 0.8761652112007141,
+          "median": 0.9865932464599609,
+          "q90": 0.9999906420707703
+        }
+      },
+      "min_emitted_prob": {
+        "correct": {
+          "n": 538,
+          "mean": 0.9888275873926936,
+          "q10": 0.9929595589637756,
+          "median": 0.9999583959579468,
+          "q90": 0.9999958276748657
+        },
+        "wrong": {
+          "n": 24,
+          "mean": 0.8071121908724308,
+          "q10": 0.496309369802475,
+          "median": 0.93329256772995,
+          "q90": 0.9999790191650391
+        }
+      },
+      "min_emitted_margin": {
+        "correct": {
+          "n": 538,
+          "mean": 0.9778126396345133,
+          "q10": 0.9862067264039069,
+          "median": 0.9999261437696987,
+          "q90": 0.9999935545497465
+        },
+        "wrong": {
+          "n": 24,
+          "mean": 0.6370758724196293,
+          "q10": 0.027954816818237305,
+          "median": 0.8667978197336197,
+          "q90": 0.9999675032886444
+        }
+      }
+    },
+    "candidate_topk": {
+      "available": false,
+      "reason": "branch_audit frame_trace stores only top1 token/probability and top1-top2 margin; no top-3/top-5 token identities."
+    },
+    "lowest_margin_wrong_examples": [
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003259.jpg",
+        "gt": "2116",
+        "ctc": "02116",
+        "ctc_conf": 0.8973504304885864,
+        "min_emitted_margin": 0.008177727460861206,
+        "edit": {
+          "M": 4,
+          "D": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003229.jpg",
+        "gt": "1247",
+        "ctc": "1447",
+        "ctc_conf": 0.8343833088874817,
+        "min_emitted_margin": 0.008657217025756836,
+        "edit": {
+          "M": 3,
+          "S": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003179.jpg",
+        "gt": "01141",
+        "ctc": "01147",
+        "ctc_conf": 0.8992573618888855,
+        "min_emitted_margin": 0.027954816818237305,
+        "edit": {
+          "S": 1,
+          "M": 4
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003125.jpg",
+        "gt": "02602",
+        "ctc": "02601",
+        "ctc_conf": 0.9033287763595581,
+        "min_emitted_margin": 0.04208812117576599,
+        "edit": {
+          "S": 1,
+          "M": 4
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003330.jpg",
+        "gt": "167684",
+        "ctc": "067680",
+        "ctc_conf": 0.8761652112007141,
+        "min_emitted_margin": 0.16152185201644897,
+        "edit": {
+          "S": 2,
+          "M": 4
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003147.jpg",
+        "gt": "0873",
+        "ctc": "01873",
+        "ctc_conf": 0.8460097312927246,
+        "min_emitted_margin": 0.1861308217048645,
+        "edit": {
+          "M": 4,
+          "D": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003156.jpg",
+        "gt": "00352",
+        "ctc": "10352",
+        "ctc_conf": 0.9224079251289368,
+        "min_emitted_margin": 0.2269187867641449,
+        "edit": {
+          "M": 4,
+          "S": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003231.jpg",
+        "gt": "00267",
+        "ctc": "00261",
+        "ctc_conf": 0.9217063784599304,
+        "min_emitted_margin": 0.23832201957702637,
+        "edit": {
+          "S": 1,
+          "M": 4
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003332.jpg",
+        "gt": "0871448",
+        "ctc": "087140483",
+        "ctc_conf": 0.9372653961181641,
+        "min_emitted_margin": 0.3559088110923767,
+        "edit": {
+          "D": 2,
+          "M": 7
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003265.jpg",
+        "gt": "8160",
+        "ctc": "0160",
+        "ctc_conf": 0.9421224594116211,
+        "min_emitted_margin": 0.5509102195501328,
+        "edit": {
+          "M": 3,
+          "S": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_002935.jpg",
+        "gt": "1294",
+        "ctc": "1284",
+        "ctc_conf": 0.9696896076202393,
+        "min_emitted_margin": 0.7600193619728088,
+        "edit": {
+          "M": 3,
+          "S": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_002949.jpg",
+        "gt": "013642",
+        "ctc": "01364",
+        "ctc_conf": 0.9865932464599609,
+        "min_emitted_margin": 0.8667978197336197,
+        "edit": {
+          "I": 1,
+          "M": 5
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003134.jpg",
+        "gt": "00489",
+        "ctc": "00488",
+        "ctc_conf": 0.986851692199707,
+        "min_emitted_margin": 0.9208569340407848,
+        "edit": {
+          "S": 1,
+          "M": 4
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003238.jpg",
+        "gt": "3171",
+        "ctc": "0071",
+        "ctc_conf": 0.9882675409317017,
+        "min_emitted_margin": 0.9453315399587154,
+        "edit": {
+          "M": 2,
+          "S": 2
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003180.jpg",
+        "gt": "00319",
+        "ctc": "00379",
+        "ctc_conf": 0.9995344877243042,
+        "min_emitted_margin": 0.9959437772631645,
+        "edit": {
+          "M": 4,
+          "S": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003287.jpg",
+        "gt": "01631",
+        "ctc": "0163",
+        "ctc_conf": 0.9994852542877197,
+        "min_emitted_margin": 0.9964638695819303,
+        "edit": {
+          "I": 1,
+          "M": 4
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003183.jpg",
+        "gt": "2902",
+        "ctc": "3902",
+        "ctc_conf": 0.9997014999389648,
+        "min_emitted_margin": 0.998336398974061,
+        "edit": {
+          "M": 3,
+          "S": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003105.jpg",
+        "gt": "0027",
+        "ctc": "00027",
+        "ctc_conf": 0.9999433755874634,
+        "min_emitted_margin": 0.9998155121793388,
+        "edit": {
+          "M": 4,
+          "D": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_003253.jpg",
+        "gt": "80877",
+        "ctc": "00877",
+        "ctc_conf": 0.9999500513076782,
+        "min_emitted_margin": 0.9998173592612147,
+        "edit": {
+          "M": 4,
+          "S": 1
+        }
+      },
+      {
+        "file": "/datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain/crops/test/crop_002954.jpg",
+        "gt": "42703",
+        "ctc": "4270",
+        "ctc_conf": 0.9999790787696838,
+        "min_emitted_margin": 0.9999231159381452,
+        "edit": {
+          "I": 1,
+          "M": 4
+        }
+      }
+    ]
+  }
+}
