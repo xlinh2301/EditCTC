@@ -317,3 +317,39 @@
 - Compare against existing Indomain test audit (`562` evaluated) before changing
   the roadmap. Append artifacts and cross-vs-Indomain conclusions when reports
   complete.
+
+## 2026-09-11 — Cross-data audits complete; roadmap updated
+
+- Candidate/error audit (`results/cross-audit-candidate/report.md`): Cross CTC
+  accuracy is `91.79%` (`94/1145` wrong) versus Indomain `95.73%` (`24/562`).
+  Cross errors are dominated by insertion/length failures: `52` insertion-only,
+  `12` deletion-only, `4` mixed-length, and `26` substitution-only, compared
+  with `7/4/0/13` on Indomain. Existing NERD is KEEP-only on both (`0/0/0`).
+  Wrong rows remain partly high-confidence (mean CTC confidence `0.976`, mean
+  minimum frame margin `0.793`). Persisted branch logs lack Top-3/Top-5 IDs.
+- Sequence counterfactual audit (`results/cross-audit-sequence/report.md`):
+  using persisted NRTR and NERD proposals, exact candidate coverage on wrong
+  rows is `13.8%` Cross vs `20.8%` Indomain; beneficial oracle coverage is
+  `20.2%` vs `29.2%`; wrong-to-correct candidates are `13` vs `5`; harmful
+  correct-to-worse proposals are `376` vs `82`. Cross supplies more absolute
+  errors but a weaker current proposal space and a much larger abstention-risk
+  surface.
+- E36 visual audit (`results/cross-audit-visual/report.md`) is explicitly
+  blocked by the persisted schema: no encoder spans or frame Top-K identities
+  were stored, so a valid cross visual oracle cannot be claimed. The confidence
+  proxy is not a substitute for visual discrimination. No Cross-data training,
+  inference checkpoint update, or B_test was performed.
+
+### Cross-data decision
+
+The central E34–E37 diagnosis does not change; it is stronger. Indomain error
+scarcity was real, but Cross exposes predominantly length-changing errors where
+the current substitution candidates are unavailable. The next experiment must
+be an evaluation-only fresh dump that records full CTC frame Top-K identities,
+collapsed spans, and encoder features on Cross and Indomain using the same
+checkpoint. Then measure length-aware full-sequence candidate oracle before any
+new training. If candidate coverage remains low, fix proposal generation first;
+do not train another verifier on a candidate set that cannot contain the answer.
+If coverage is adequate, train only on non-Cross data and evaluate the verifier
+on Cross as a locked external test, with `helped > hurt` and correction recall at
+fixed harm rates as gates.

@@ -1,0 +1,17 @@
+{
+  "status": "blocked_by_persisted_audit_schema",
+  "experiment": "E36-E/F/G cross-data visual oracle",
+  "cross_data_used_for_training": false,
+  "b_test_used": false,
+  "cross_rows": 1145,
+  "indomain_rows": 562,
+  "encoder_spans_present": false,
+  "frame_topk_identities_present": false,
+  "available_proxy": {
+    "cross_wrong_ctc_confidence_mean": 0.976,
+    "cross_correct_ctc_confidence_mean": 0.996,
+    "cross_wrong_min_emitted_margin_mean": 0.793,
+    "cross_correct_min_emitted_margin_mean": 0.965
+  },
+  "conclusion": "No valid E36 visual oracle comparison can be made from the persisted checkpoint-only audit."
+}
