@@ -64,6 +64,39 @@ def ctc_vocab_size(dict_path: Path, use_space_char: bool = True):
     return n + 1 + int(use_space_char)  # CTC blank + dictionary (+ space)
 
 
+def eval_ops(model, loader, loss_fn):
+    model.eval()
+    counts = {"valid": 0, "nonkeep": 0, "nonkeep_correct": 0,
+              "keep_target": 0, "keep_pred": 0, "keep_true_positive": 0,
+              "token_valid": 0, "token_correct": 0}
+    with paddle.no_grad():
+        for seed_ids, seed_lens, gt_ids, gt_lens in loader:
+            pred = model(memory=None, seed_ids=seed_ids, seed_lens=seed_lens)
+            op_t, tok_t = loss_fn.build_targets(
+                seed_ids.numpy(), seed_lens.numpy(), gt_ids.numpy(), gt_lens.numpy()
+            )
+            op_p = pred["op_logits"].argmax(axis=-1).numpy()
+            tok_p = pred["tok_logits"].argmax(axis=-1).numpy()
+            valid = op_t != -100
+            nonkeep = valid & (op_t != 0)
+            keep = valid & (op_t == 0)
+            tok_valid = tok_t != -100
+            counts["valid"] += int(valid.sum())
+            counts["nonkeep"] += int(nonkeep.sum())
+            counts["nonkeep_correct"] += int((nonkeep & (op_p == op_t)).sum())
+            counts["keep_target"] += int(keep.sum())
+            counts["keep_pred"] += int((valid & (op_p == 0)).sum())
+            counts["keep_true_positive"] += int((keep & (op_p == 0)).sum())
+            counts["token_valid"] += int(tok_valid.sum())
+            counts["token_correct"] += int((tok_valid & (tok_p == tok_t)).sum())
+    return {
+        "nonkeep_recall": counts["nonkeep_correct"] / max(counts["nonkeep"], 1),
+        "keep_precision": counts["keep_true_positive"] / max(counts["keep_pred"], 1),
+        "token_accuracy": counts["token_correct"] / max(counts["token_valid"], 1),
+        "counts": counts,
+    }
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--manifest", type=Path, required=True)
@@ -133,8 +166,11 @@ def main():
             optimizer.clear_grad()
             total += float(loss)
         mean_loss = total / max(len(loader), 1)
-        history.append({"epoch": epoch + 1, "loss": mean_loss})
-        print(f"epoch={epoch + 1}/{args.epochs} loss={mean_loss:.5f}", flush=True)
+        metrics = eval_ops(model, paddle.io.DataLoader(
+            TextDataset(val_rows, args.max_len), batch_size=args.batch_size,
+            shuffle=False, drop_last=False, num_workers=0), loss_fn) if val_rows else {}
+        history.append({"epoch": epoch + 1, "loss": mean_loss, "val": metrics})
+        print(f"epoch={epoch + 1}/{args.epochs} loss={mean_loss:.5f} val={metrics}", flush=True)
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     state = {"head.edit_refine_head." + k: v for k, v in model.state_dict().items()}
