@@ -266,3 +266,11 @@
   edit precision. The densified bank alone does not solve verifier safety;
   inference remains locked. Report:
   `worktree/agent__loop-e37-b2/results/20-e37-b2-verifier/results.md`.
+
+## 2026-09-11 — Representation and risk pivots dispatched
+
+- E36-F node `22` tests candidate-aware local visual representation training
+  after the E36-E oracle failed at 30% token accuracy.
+- E37-C node `23` tests asymmetric risk-aware verifier training with explicit
+  correct-to-wrong replay after E37-B2 over-edited (`82/0/77`).
+- Both remain offline-only; inference and B_test stay locked.
