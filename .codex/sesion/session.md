@@ -294,3 +294,13 @@
 - E36-G node `24` tests a high-resolution local crop oracle for aligned token
   spans. It is the final diagnostic before pivoting away from post-hoc
   substitution correction; inference and B_test remain locked.
+
+## 2026-09-11 — E36-G complete; post-hoc substitution branch closed
+
+- E36-G used raw high-resolution local crops with image-disjoint evaluation.
+  Candidate coverage stayed `10/12 = 0.8333`; padding 2 gave visual token
+  oracle `3/10 = 0.30`, while padding 3 reached `0.50`. Full-sequence oracle
+  remained `0/1` for both. More local pixels add some token signal but do not
+  make sequence correction identifiable. The E36 post-hoc substitution
+  branch is therefore closed; no scorer/verifier inference integration is
+  allowed.
