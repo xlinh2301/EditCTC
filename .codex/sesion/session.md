@@ -411,4 +411,30 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
   random. Its metrics are invalid and must not be used as a gate.
 - Fixed the evaluator in commit `4009a29` to load the frozen s1024 CTC
   checkpoint first and the visual edit tensors second. Corrected validation job
-  `70701` is running; E40 remains pending until that result arrives.
+  `70701` completed successfully. On 4,000 held-out rendered rows it obtained
+  `wrong_seed=3,039`, `seed_exact=961`, `changed=3,040`, `helped=2,678`,
+  `hurt=6`, `nonkeep_recall=0.9806`, `keep_precision=0.9975`, and
+  `token_accuracy=0.9689`. This passes the synthetic mechanics/visual gate,
+  but is not deployment evidence because the seed is explicit/rule-corrupted.
+- Added additive edit-head loading to `tools/infer_rec.py` in commit
+  `9010cba`, preserving the complete frozen CTC checkpoint and replacing only
+  matching `head.edit_refine_head.*` tensors. The two-set evaluation launcher
+  now accepts `E40_OUT_ROOT` and `E40_EDIT_PRETRAINED` overrides.
+- Submitted real-pipeline transfer evaluation job `70702` for both Indomain and
+  Cross (evaluation-only; no Cross training and no B_test). Its output root is
+  `Data/EditCTC_eval_s1024/e40_visual_transfer`.
+- Job `70702` completed and fails the real-data gate catastrophically. Cross:
+  CTC `0.9179`, E40 final `0.1135`, `changed=1012`, `helped=3`, `hurt=924`.
+  Indomain: CTC `0.9573`, E40 final `0.2883`, `changed=401`, `helped=1`,
+  `hurt=377`. Offline operation-confidence thresholds up to `0.99` still had
+  `hurt > helped`, so this is not a simple threshold-calibration issue.
+- Interpretation: E40 learned the edit mechanics and visual synthetic task,
+  but the synthetic rendered visual/seed distribution does not transfer to
+  natural CTC spans. The head edits even CTC-correct real strings, so the
+  checkpoint is explicitly rejected for deployment. Arbor node `28` is done
+  with score `0`.
+- Next controlled step is E40-B/E35 bridge: run frozen base CTC on non-Cross
+  training images, build a natural-CTC/low-margin hard-KEEP bank, then adapt
+  only the edit head with the synthetic checkpoint as initialization and hold
+  Cross locked for evaluation. Add a selective verifier/gate only after this
+  bank produces `helped > hurt` on held-out Indomain.
