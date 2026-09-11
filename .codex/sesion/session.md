@@ -489,6 +489,9 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
 - `BaseModel` now passes the input image to heads that opt into
   `use_original_image`. New config:
   `config/PP-OCRv6_small_rec_s1024_nrtr_integrated.yml`.
-- Smoke job `70800` exposed missing output-channel registration for the new
-  head and was superseded. Training setup was fixed in commit `9cf6127` and
-  retry job `70801` is running. No production checkpoint has been changed.
+- Smoke job `70800` exposed missing output-channel registration and retry
+  `70801` exposed a Linear vocab-axis initialization bug; both were superseded.
+  These were fixed in commits `9cf6127` and `bb4d7fb`. Retry `70802` then
+  exposed the launcher passing the string `None` as `Global.checkpoints`; the
+  smoke launcher now leaves that field unset and job `70803` is the clean retry.
+  No production checkpoint has been changed.

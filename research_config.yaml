@@ -1,15 +1,14 @@
 task: >
-  Improve EditCTC's natural-seed error correction through a gated E35-E39
-  experimental loop. First build and select a leakage-free Natural CTC Error
-  Bank (historical replay versus OOF), then train a KEEP-versus-REPLACE visual
-  scorer on actual encoder spans and evaluate selective correction at fixed
-  harm rates. If scorer discrimination fails, pivot through candidate-aware
-  contrastive fine-tuning and local visual refinement before opening
-  DELETE/INSERT, LCB, or multi-step refinement. Execute each experiment in an
-  isolated Arbor worktree/branch, use B_dev for iteration, reserve B_test for
-  final verification, and preserve all gate metrics and provenance. Stop after
-  2-3 controlled variants per hypothesis family; do not modify data or the eval
-  harness to improve a score.
+  Run the E41-E44 architecture-improvement loop for EditCTC. E41 tests an
+  NRTR-pretrained decoder integrated into EditCTC using feature-map memory,
+  original-image tokens, and a CTC seed, with no standalone NRTR loss branch.
+  E42 instruments CTC frame Top-K identities and collapsed spans for leakage-safe
+  candidate oracle audits. E43 builds a larger Indomain-only natural bridge bank
+  and evaluates substitution-only transfer. E44 trains an independent visual
+  candidate/sequence verifier only if candidate coverage is adequate. Keep
+  Cross evaluation-only, reserve B_test, preserve gate metrics and provenance,
+  and stop after 2-3 controlled variants per family; never tune the harness to
+  improve a score.
 
 coordinator:
   cwd: .

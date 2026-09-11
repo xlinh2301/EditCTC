@@ -20,7 +20,6 @@ REQUIRED_VRAM=1200 source "$WS/slurm/gpu_setup.sh"
 cd "$CODE"
 "$PY" tools/train.py -c "$CFG" \
   -o Global.pretrained_model="$BASE" \
-     Global.checkpoints=None \
      Global.save_model_dir="$OUT" \
      Global.epoch_num=1 \
      Global.distributed=False \
