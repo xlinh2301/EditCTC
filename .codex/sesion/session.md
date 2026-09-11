@@ -382,3 +382,8 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
   low-margin hard KEEP rows. This is the required bridge from synthetic
   mechanics to visual transfer; raw rule rows are never treated as deployment
   evidence.
+- Added `tools/pretrain_editrefine_visual.py` for Stage-1 GPU pretraining. It
+  freezes the backbone/CTC path, passes the manifest seed explicitly into the
+  existing visual EditRefineDecoder, optionally loads Stage-0 text tensors, and
+  saves only edit-head weights. It has not been run yet; the local environment
+  cannot load Paddle CUDA.
