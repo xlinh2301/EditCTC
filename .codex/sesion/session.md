@@ -390,3 +390,6 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
 - Submitted GPU jobs `70647` (text mechanics) and `70648` (visual synthetic).
   Job `70648` waits for both the corpus summary and the Stage-0 text checkpoint,
   so visual training cannot start prematurely.
+- Text job now logs held-out synthetic non-KEEP recall, KEEP precision, and
+  token-target accuracy each epoch; a falling loss alone is not considered a
+  successful edit-pretraining gate.
