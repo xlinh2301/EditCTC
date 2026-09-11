@@ -443,3 +443,15 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
   produced. The launcher now explicitly sets
   `Global.edit_refine_pretrained=None` for the frozen CTC dump (commit
   `e6fe708`) and was resubmitted as job `70746`.
+- Corrected dump job `70747` completed over all 2,462 Indomain train images.
+  `build_natural_ctc_manifest.py` retained 41 authentic wrong seeds and 706
+  low-confidence hard KEEP rows (686 train / 61 held-out val); no Cross rows
+  are present.
+- Natural adaptation job `70748` initialized from E40 visual weights, repeated
+  natural errors 10x (roughly 1:2 against hard KEEP), and trained only the edit
+  head for 8 epochs (`loss 1.4117 -> 0.2614`). Transfer job `70750` improved
+  final accuracy but still failed safety: Cross `24.63%`, `helped=10`,
+  `hurt=779`; Indomain `44.13%`, `helped=2`, `hurt=292`. This confirms the
+  natural bank moves the model toward the right distribution but is too small
+  to learn a safe correction boundary. Held-out natural-bank validation is
+  running as job `70749`.
