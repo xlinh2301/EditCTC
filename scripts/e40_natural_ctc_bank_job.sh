@@ -28,6 +28,7 @@ cd "$CODE"
   -c "$CFG" \
   -o Global.checkpoints="$CKPT" \
      Global.pretrained_model=None \
+     Global.edit_refine_pretrained=None \
      Global.infer_img="$IMG" \
      Global.infer_list="$OUT/infer_list.txt" \
      Global.save_res_path="$OUT/predictions.txt" \
