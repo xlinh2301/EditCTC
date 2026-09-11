@@ -11,10 +11,13 @@ from __future__ import annotations
 import argparse
 import json
 import random
+import sys
 from pathlib import Path
 
 import numpy as np
 import paddle
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from ppocr.losses.rec_edit_loss import EditLoss
 from ppocr.modeling.heads.rec_edit_refine_head import EditRefineDecoder
