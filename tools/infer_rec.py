@@ -34,7 +34,7 @@ from ppocr.data import create_operators, transform
 from ppocr.modeling.architectures import build_model
 from ppocr.postprocess import build_post_process
 from ppocr.postprocess.rec_postprocess import NRTRLabelDecode
-from ppocr.utils.save_load import load_model
+from ppocr.utils.save_load import load_model, load_pretrained_params
 from ppocr.utils.utility import get_image_file_list
 import tools.program as program
 
@@ -248,6 +248,14 @@ def main():
     model = build_model(config["Architecture"])
 
     load_model(config, model)
+
+    # Optional additive edit-head checkpoint. Apply it only after the complete
+    # CTC checkpoint so real-data transfer tests keep the frozen visual/CTC
+    # path and replace matching edit tensors only.
+    extra_pretrained = config["Global"].get("edit_refine_pretrained")
+    if extra_pretrained:
+        logger.info("partial-loading edit refinement checkpoint: {}".format(extra_pretrained))
+        load_pretrained_params(model, extra_pretrained)
 
     # create data ops
     transforms = []
