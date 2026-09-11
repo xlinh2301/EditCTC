@@ -274,3 +274,17 @@
 - E37-C node `23` tests asymmetric risk-aware verifier training with explicit
   correct-to-wrong replay after E37-B2 over-edited (`82/0/77`).
 - Both remain offline-only; inference and B_test stay locked.
+
+## 2026-09-11 — E36-F and E37-C complete
+
+- E36-F node `22` tested span-only and previous/current/next local context.
+  Candidate coverage stayed `10/12 = 0.8333`; visual oracle token accuracy
+  improved only `0.30 -> 0.40`, while sequence oracle stayed `0/1`. The
+  representation gate fails. Report:
+  `worktree/agent__loop-e36-f/results/22-e36-f-representation-v2/results.md`.
+- E37-C node `23` tested risk weights `1,2,4,8` with harmful-edit replay.
+  All variants had `P(good>seed)=1.0`, `P(seed>harmful)=0.0`, and
+  `changed/helped/hurt=82/1/77`; edit precision was about `1.28%`. Risk loss
+  does not repair the verifier score geometry. Report:
+  `worktree/agent__loop-e37-c/results/22-e37-c-risk-verifier/results.md`.
+- No inference integration or B_test is permitted after these failures.
