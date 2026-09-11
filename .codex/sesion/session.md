@@ -405,13 +405,10 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
   for explicit-seed synthetic `helped/hurt`, operation recall, and KEEP
   precision. This remains pre-integration; real Indomain/Cross evaluation must
   use natural CTC seeds afterward.
-- E40 visual synthetic evaluation job `70698` completed on 4,000 held-out
-  synthetic rows. It learned to edit mechanically but failed the safety gate:
-  `changed=3985`, `helped=58`, `hurt=954`, `refined_exact=65`,
-  non-KEEP recall `0.5505`, KEEP precision `0.8895`, token accuracy `0.3982`.
-  This is evidence that rendered-image features plus rule seeds still do not
-  transfer safely; the visual stage over-edits clean seeds. No checkpoint was
-  installed into the main inference pipeline.
-- E40 node `28` is therefore FAIL for transfer. Next step is to inspect
-  operation counts/seed provenance and add a frozen-CTC natural-seed transfer
-  gate; do not tune thresholds or deploy this visual checkpoint.
+- E40 visual synthetic evaluation job `70698` initially reported
+  `changed=3985`, `helped=58`, `hurt=954`, but that run loaded the edit-only
+  checkpoint as if it were the full model and therefore left the CTC/backbone
+  random. Its metrics are invalid and must not be used as a gate.
+- Fixed the evaluator in commit `4009a29` to load the frozen s1024 CTC
+  checkpoint first and the visual edit tensors second. Corrected validation job
+  `70701` is running; E40 remains pending until that result arrives.
