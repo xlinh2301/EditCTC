@@ -32,6 +32,9 @@ fi
 if [[ -n "${EVAL_EDIT_PRETRAINED:-}" ]]; then
   EXTRA_OVERRIDES+=("Global.edit_refine_pretrained=$EVAL_EDIT_PRETRAINED")
 fi
+if [[ -n "${EVAL_TOP2_ONLY:-}" ]]; then
+  EXTRA_OVERRIDES+=("Architecture.Head.edit_candidate_top2_only=$EVAL_TOP2_ONLY")
+fi
 LIST="$EVAL_OUT_DIR/eval_list.txt"
 MISSING="$EVAL_OUT_DIR/skipped_missing_images.txt"
 BRANCH="$EVAL_OUT_DIR/branch_audit.jsonl"

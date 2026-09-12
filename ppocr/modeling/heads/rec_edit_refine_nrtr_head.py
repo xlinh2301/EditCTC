@@ -79,6 +79,7 @@ class MultiHeadEditRefineNRTR(MultiHead):
         self.train_seed_corrupt_mode = kwargs.get("train_seed_corrupt_mode", "random")
         self.edit_gate_threshold = kwargs.get("edit_gate_threshold", 0.5)
         self.edit_delta_threshold = kwargs.get("edit_delta_threshold", 0.05)
+        self.edit_candidate_top2_only = kwargs.get("edit_candidate_top2_only", False)
         if self.edit_mode == "factorized":
             # Residual editor: class 0 means KEEP and class 1 means the
             # replacement head should be used. DELETE/INSERT are deliberately
@@ -221,6 +222,9 @@ class MultiHeadEditRefineNRTR(MultiHead):
                     best_prob - seed_prob >= self.edit_delta_threshold,
                 ),
             )
+            if self.edit_candidate_top2_only:
+                alt_t = paddle.to_tensor(alternatives, dtype="int64")
+                edit_mask = paddle.logical_and(edit_mask, tok_ids_t == alt_t)
             op_ids = edit_mask.astype("int64").numpy()
         else:
             op_ids = paddle.argmax(op_logits, axis=2).numpy()
