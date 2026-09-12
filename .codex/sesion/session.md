@@ -558,3 +558,8 @@ Because the binary/four-way KEEP gate still collapsed at test time, added a dist
 - Added `tools/adapt_nrtr_token_natural.py` and `scripts/e43_natural_cached_token_train.sh`. It trains only integrated editor token/op tensors with explicit cached Indomain natural CTC seeds; 32 natural error rows are repeated 20x alongside 706 hard KEEP rows. Cross is never read for training. Additive editor loading was added to `scripts/e41_eval_checkpoint_job.sh` (commit `8b4d5c2`).
 - E43 test: Indomain CTC 541/562 -> final 540/562, changed=3, helped=0, hurt=1. Cross CTC 1038/1145 -> final 1040/1145, changed=8, helped=3, hurt=1. This is the first branch with genuine positive correction signal, but still fails the absolute baseline gate (persistent Cross baseline 1051/1145) and harms Indomain.
 - Added a CTC Top-2 candidate-only safety gate (commit `40dc06a`). On E43 Cross it reduced changed edits 8 -> 6, retained all 3 helped and the single hurt, final remained 1040/1145; on dev it changed nothing. Candidate restriction improves precision of neutral edits but does not solve safety/generalization.
+
+## 2026-09-12 — E43-B same-length natural substitution isolation
+
+- Filtered natural adaptation to the 12 same-length Indomain substitution errors (30x oversampled) plus hard KEEP, excluding length-changing rows from token loss. Job 70879 completed with loss `0.474 -> 0.268`.
+- Test jobs 70880/70881: Indomain `541 -> 540`, changed=4/helped=0/hurt=1; Cross `1038 -> 1040`, changed=9/helped=3/hurt=1. Metrics are essentially identical to E43 full natural adaptation, so length-noise filtering alone is insufficient. Natural supervision is promising for edit activity but the available bank is too small and not representative enough to beat baseline.
