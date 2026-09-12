@@ -17,6 +17,7 @@ from ppocr.modeling.architectures import build_model
 from ppocr.modeling.heads.rec_edit_refine_nrtr_head import ctc_seed_and_margin
 from ppocr.modeling.heads.sequence_verifier import SequenceVisualVerifier
 from ppocr.postprocess import build_post_process
+from ppocr.data.imaug.rec_img_aug import resize_norm_img
 from ppocr.utils.save_load import load_model
 
 
@@ -47,9 +48,8 @@ class ImageRows(paddle.io.Dataset):
         image = cv2.imread(row["image"], cv2.IMREAD_COLOR)
         if image is None:
             raise FileNotFoundError(row["image"])
-        image = cv2.resize(image, (320, 48), interpolation=cv2.INTER_AREA)
-        image = ((image.astype("float32") / 255.0) - 0.5) / 0.5
-        return image.transpose(2, 0, 1), row["name"], row["gt"]
+        image, _ = resize_norm_img(image, [3, 48, 320], padding=True)
+        return image, row["name"], row["gt"]
 
 
 def collate(batch):
