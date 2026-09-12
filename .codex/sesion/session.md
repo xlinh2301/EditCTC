@@ -502,3 +502,14 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
   epoch with finite losses (`EditActivationRate≈0.11`), validation accuracy
   `0.8854` versus `0.8902` baseline. Nodes `30`–`32` remain pending behind
   their stated coverage/data gates.
+- E41 long run job `70822` completed all 30 epochs at
+  `Data/EditCTC_arbor_runs/editctc-nerd-lcb/e41/nrtr_integrated_30ep`.
+  Best Indomain validation was epoch 26: `acc=0.8853658321`,
+  `norm_edit_dis=0.9658536594`, versus immutable CTC baseline `0.89024390`.
+  Training CTC accuracy reached `0.98–1.00`, while
+  `EditPredChangeRate/Replace/Delete/InsertRate` stayed `0.0` throughout the
+  late run. The integrated NRTR head therefore trains and remains numerically
+  stable, but 30 epochs do not produce useful edits and slightly trail the
+  baseline; this is an architecture/training probe, not a deployable model.
+  Best checkpoint is `.../e41/nrtr_integrated_30ep/best_accuracy` and Cross
+  data remains evaluation-only.
