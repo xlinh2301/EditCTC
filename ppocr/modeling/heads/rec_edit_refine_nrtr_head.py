@@ -72,6 +72,9 @@ class MultiHeadEditRefineNRTR(MultiHead):
         self.edit_tok_head = nn.Linear(self.nrtr_dim, self.vocab_size)
         self.edit_head_dropout = nn.Dropout(kwargs.get("edit_head_dropout", 0.2))
         self.edit_allowed_ops = kwargs.get("edit_allowed_ops")
+        # Inference-only branch tracing used by the test audit.  The normal
+        # output remains the refined CTC tensor unless this flag is enabled.
+        self.branch_debug = kwargs.get("branch_debug", False)
 
         # Transfer NRTR's pretrained character projection into the CTC-vocab
         # token head where the index spaces overlap (NRTR chars are CTC ids+3).
@@ -147,4 +150,28 @@ class MultiHeadEditRefineNRTR(MultiHead):
             refined.append(apply_edit_ops(seeds_np[b, : int(n)].tolist(),
                                           op_ids[b, : int(n)].tolist(),
                                           tok_ids[b, : int(n)].tolist()))
-        return build_refined_ctc_probs(refined, self.vocab_size, EditRefineDecoder.BLANK_ID)
+        refined_probs = build_refined_ctc_probs(
+            refined, self.vocab_size, EditRefineDecoder.BLANK_ID
+        )
+        if not self.branch_debug:
+            return refined_probs
+
+        # Keep this payload detached and inference-only.  infer_rec.py uses
+        # the same schema as the uncertainty head to compute CTC/seed/final
+        # exactness plus helped/hurt and operation counts.
+        branch_debug = {
+            "ctc_probs": ctc_out.numpy(),
+            "length_logits": (
+                length_logits.numpy() if length_logits is not None else None
+            ),
+            "nrtr_ids": None,
+            "nrtr_probs": None,
+            "seed_ids": seeds_np,
+            "seed_lens": lens_np,
+            "edit_op_logits": edit_out["op_logits"].numpy(),
+            "edit_tok_logits": edit_out["tok_logits"].numpy(),
+            "edit_op_ids": op_ids,
+            "edit_tok_ids": tok_ids,
+            "refined_ids": refined,
+        }
+        return {"ctc": refined_probs, "branch_debug": branch_debug}
