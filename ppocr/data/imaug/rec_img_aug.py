@@ -89,6 +89,7 @@ class CTCSpanBlurAug(object):
         sigma_min=3.0,
         sigma_max=8.0,
         expand=0.18,
+        min_span_fraction=0.06,
         **kwargs,
     ):
         self.span_index_path = span_index_path
@@ -98,6 +99,7 @@ class CTCSpanBlurAug(object):
         self.sigma_min = float(sigma_min)
         self.sigma_max = float(sigma_max)
         self.expand = float(expand)
+        self.min_span_fraction = float(min_span_fraction)
         self._spans = None
 
     def _load_spans(self):
@@ -150,6 +152,10 @@ class CTCSpanBlurAug(object):
         width = img.shape[1]
         center = 0.5 * (float(start) + float(end))
         span_width = max(float(end) - float(start), 1.0 / max(width, 1))
+        # CTC frame spans can be only one frame wide. Ensure the corruption
+        # covers a meaningful digit-sized region after mapping back to the
+        # crop; otherwise a 3--6 px blur is visually invisible at train time.
+        span_width = max(span_width, self.min_span_fraction)
         left = max(0.0, center - 0.5 * span_width * (1.0 + self.expand))
         right = min(1.0, center + 0.5 * span_width * (1.0 + self.expand))
         x0 = max(0, int(round(left * width)))

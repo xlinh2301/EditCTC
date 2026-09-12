@@ -24,7 +24,7 @@ def main():
     cfg=yaml.safe_load(open(args.config)); g=cfg['Global']; post=build_post_process(cfg['PostProcess'],g); C=len(post.character); h=cfg['Architecture']['Head']; h['out_channels_list']={'CTCLabelDecode':C,'SARLabelDecode':C+2,'NRTRLabelDecode':C+3}; g['checkpoints']=args.checkpoint; g['pretrained_model']=None; model=build_model(cfg['Architecture']); load_model(cfg,model); model.eval()
     idx=json.load(open(args.span_index));
     ops_clean=create_operators([{'DecodeImage':{'img_mode':'BGR','channel_first':False}},{'RecResizeImg':{'image_shape':[3,48,320],'infer_mode':True}},{'KeepKeys':{'keep_keys':['image']}}],g)
-    ops_blur=create_operators([{'DecodeImage':{'img_mode':'BGR','channel_first':False}},{'CTCSpanBlurAug':{'span_index_path':args.span_index,'prob':1.0,'min_kernel':15,'max_kernel':21,'sigma_min':6,'sigma_max':10,'expand':0.35}},{'RecResizeImg':{'image_shape':[3,48,320],'infer_mode':True}},{'KeepKeys':{'keep_keys':['image']}}],g)
+    ops_blur=create_operators([{'DecodeImage':{'img_mode':'BGR','channel_first':False}},{'CTCSpanBlurAug':{'span_index_path':args.span_index,'prob':1.0,'min_kernel':15,'max_kernel':21,'sigma_min':6,'sigma_max':10,'expand':0.35,'min_span_fraction':0.06}},{'RecResizeImg':{'image_shape':[3,48,320],'infer_mode':True}},{'KeepKeys':{'keep_keys':['image']}}],g)
     rows=[]
     for l in open(args.label_file):
         if l.strip():
