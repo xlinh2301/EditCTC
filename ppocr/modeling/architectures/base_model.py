@@ -74,12 +74,16 @@ class BaseModel(nn.Layer):
             self.use_head = True
             config["Head"]["in_channels"] = in_channels
             self.head = build_head(config["Head"])
-            if self.use_backbone and getattr(self.head, "use_recon_head", False):
-                # the optional reconstruction branch reads a feature map from
-                # partway through the backbone (recon_feat), captured before
-                # the recognizer's own height-collapsing pool. The head has
-                # no other way to reach into the backbone, so this is a
-                # deliberate back-reference set once at construction time.
+            if self.use_backbone and (
+                getattr(self.head, "use_recon_head", False)
+                or getattr(self.head, "use_highres_visual", False)
+            ):
+                # Auxiliary reconstruction and E44 high-resolution visual
+                # memory read a feature map from partway through the backbone
+                # (recon_feat), captured before the recognizer's own
+                # height-collapsing pool. The head has no other way to reach
+                # into the backbone, so this is a deliberate back-reference
+                # set once at construction time.
                 self.head.backbone_ref = self.backbone
 
         self.return_all_feats = config.get("return_all_feats", False)

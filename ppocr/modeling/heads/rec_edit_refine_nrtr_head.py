@@ -13,6 +13,7 @@ import paddle
 from paddle import nn
 
 from .rec_multi_head import MultiHead
+from .rec_nrtr_head import TransformerBlock
 from .rec_edit_refine_head import (
     EditRefineDecoder,
     apply_edit_ops,
@@ -43,6 +44,88 @@ def ctc_seed_and_margin(ctc_logits, max_seed_len):
     return seeds, lens, margins, alternatives
 
 
+class SharedHighResVisualMemory(nn.Layer):
+    """Encode the backbone's pre-pooling 2D feature map for the NRTR decoder.
+
+    PPLCNetV4 stores its last recognition feature map as ``recon_feat`` before
+    collapsing height for CTC.  E44-A reuses that feature instead of encoding
+    raw pixels in a separate branch.  Row/column embeddings preserve the 2D
+    layout, while a small self-attention stack supplies local/global context
+    before the map is flattened into decoder memory.
+    """
+
+    def __init__(
+        self,
+        in_channels,
+        dim,
+        max_height=8,
+        max_width=256,
+        layers=1,
+        nhead=8,
+        dropout=0.1,
+    ):
+        super().__init__()
+        if dim % nhead != 0:
+            raise ValueError("visual memory dim must be divisible by nhead")
+        self.max_height = int(max_height)
+        self.max_width = int(max_width)
+        self.proj = nn.Conv2D(in_channels, dim, kernel_size=1)
+        # Depthwise local mixing preserves character strokes before global
+        # attention and is cheap at the 3x80 PPLCNetV4 feature resolution.
+        self.local_mix = nn.Conv2D(
+            dim, dim, kernel_size=3, padding=1, groups=dim
+        )
+        self.visual_row_embed = self.create_parameter(
+            shape=[1, self.max_height, 1, dim],
+            default_initializer=nn.initializer.Normal(std=dim**-0.5),
+        )
+        self.visual_col_embed = self.create_parameter(
+            shape=[1, 1, self.max_width, dim],
+            default_initializer=nn.initializer.Normal(std=dim**-0.5),
+        )
+        self.visual_type_embed = self.create_parameter(
+            shape=[1, 1, dim],
+            default_initializer=nn.initializer.Normal(std=dim**-0.5),
+        )
+        self.dropout = nn.Dropout(dropout)
+        self.blocks = nn.LayerList(
+            [
+                TransformerBlock(
+                    d_model=dim,
+                    nhead=nhead,
+                    dim_feedforward=dim * 4,
+                    attention_dropout_rate=dropout,
+                    residual_dropout_rate=dropout,
+                    with_self_attn=True,
+                    with_cross_attn=False,
+                )
+                for _ in range(int(layers))
+            ]
+        )
+        self.norm = nn.LayerNorm(dim)
+
+    def forward(self, feature_map):
+        if feature_map is None or len(feature_map.shape) != 4:
+            raise ValueError("high-resolution visual feature must be [B,C,H,W]")
+        _, _, height, width = feature_map.shape
+        if height > self.max_height or width > self.max_width:
+            raise ValueError(
+                "visual position range exceeded: got HxW={}x{}, max={}x{}".format(
+                    height, width, self.max_height, self.max_width
+                )
+            )
+        x = self.proj(feature_map)
+        x = x + self.local_mix(x)
+        x = x.transpose([0, 2, 3, 1])
+        x = x + self.visual_row_embed[:, :height, :, :]
+        x = x + self.visual_col_embed[:, :, :width, :]
+        x = x.reshape([0, height * width, x.shape[-1]])
+        x = self.dropout(x + self.visual_type_embed)
+        for block in self.blocks:
+            x = block(x)
+        return self.norm(x)
+
+
 class MultiHeadEditRefineNRTR(MultiHead):
     """CTC + integrated NRTR-seed edit decoder, without an NRTR loss branch."""
 
@@ -52,6 +135,8 @@ class MultiHeadEditRefineNRTR(MultiHead):
         super().__init__(in_channels, out_channels_list, **kwargs)
         assert self.use_length_head, "integrated NRTR edit head requires length head"
         self.use_original_image = True
+        self.use_highres_visual = kwargs.get("use_highres_visual", False)
+        self.backbone_ref = None
         self.vocab_size = out_channels_list["CTCLabelDecode"]
         self.max_seed_len = kwargs.get("length_max", 25)
         self.nrtr_dim = kwargs.get("nrtr_dim", 384)
@@ -70,6 +155,20 @@ class MultiHeadEditRefineNRTR(MultiHead):
             nn.AdaptiveAvgPool2D((1, 80)),
         )
         self.image_mem_proj = nn.Linear(self.ctc_encoder.out_channels, self.nrtr_dim)
+        self.ctc_type_embed = self.create_parameter(
+            shape=[1, 1, self.nrtr_dim],
+            default_initializer=nn.initializer.Normal(std=self.nrtr_dim**-0.5),
+        )
+        if self.use_highres_visual:
+            self.visual_memory = SharedHighResVisualMemory(
+                in_channels=kwargs.get("visual_in_channels", in_channels),
+                dim=self.nrtr_dim,
+                max_height=kwargs.get("visual_pos_max_height", 8),
+                max_width=kwargs.get("visual_pos_max_width", 256),
+                layers=kwargs.get("visual_encoder_layers", 1),
+                nhead=kwargs.get("visual_encoder_heads", self.nrtr_dim // 48),
+                dropout=kwargs.get("visual_encoder_dropout", 0.1),
+            )
         self.edit_op_head = nn.Linear(self.nrtr_dim, 4)
         self.edit_tok_head = nn.Linear(self.nrtr_dim, self.vocab_size)
         self.edit_head_dropout = nn.Dropout(kwargs.get("edit_head_dropout", 0.2))
@@ -107,8 +206,20 @@ class MultiHeadEditRefineNRTR(MultiHead):
 
     def _memory(self, feature_map, original_image):
         ctc_memory = self.ctc_encoder(feature_map)
-        parts = [ctc_memory if self.ctc_mem_proj is None else self.ctc_mem_proj(ctc_memory)]
-        if original_image is not None:
+        ctc_part = (
+            ctc_memory if self.ctc_mem_proj is None else self.ctc_mem_proj(ctc_memory)
+        )
+        ctc_part = ctc_part + self.ctc_type_embed
+        parts = [ctc_part]
+        if self.use_highres_visual:
+            recon_feat = getattr(self.backbone_ref, "recon_feat", None)
+            if recon_feat is None:
+                raise RuntimeError(
+                    "use_highres_visual requires backbone.recon_feat; "
+                    "run the PPLCNetV4 backbone before the head"
+                )
+            parts.append(self.visual_memory(recon_feat))
+        elif original_image is not None:
             raw = self.image_encoder(original_image)
             raw = raw.squeeze(2).transpose([0, 2, 1])
             parts.append(self.image_mem_proj(raw))
