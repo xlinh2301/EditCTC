@@ -22,6 +22,13 @@ CFG="${EVAL_CONFIG:-$CODE/config/PP-OCRv6_small_rec_s1024_nrtr_blur_online_w1.ym
 
 REQUIRED_VRAM=1200 source "$WS/slurm/gpu_setup.sh"
 mkdir -p "$EVAL_OUT_DIR"
+EXTRA_OVERRIDES=()
+if [[ -n "${EVAL_GATE_THRESHOLD:-}" ]]; then
+  EXTRA_OVERRIDES+=("Architecture.Head.edit_gate_threshold=$EVAL_GATE_THRESHOLD")
+fi
+if [[ -n "${EVAL_DELTA_THRESHOLD:-}" ]]; then
+  EXTRA_OVERRIDES+=("Architecture.Head.edit_delta_threshold=$EVAL_DELTA_THRESHOLD")
+fi
 LIST="$EVAL_OUT_DIR/eval_list.txt"
 MISSING="$EVAL_OUT_DIR/skipped_missing_images.txt"
 BRANCH="$EVAL_OUT_DIR/branch_audit.jsonl"
@@ -47,7 +54,8 @@ export PYTHONPATH="$CODE${PYTHONPATH:+:$PYTHONPATH}"
      Global.infer_list="$LIST" \
      Global.save_res_path="$PRED" \
      Global.branch_log_path="$BRANCH" \
-     Architecture.Head.branch_debug=True
+     Architecture.Head.branch_debug=True \
+     "${EXTRA_OVERRIDES[@]}"
 
 "$PY" - "$EVAL_LABEL_FILE" "$BRANCH" "$PRED" "$MISSING" "$SUMMARY" <<'PY'
 import json, sys
