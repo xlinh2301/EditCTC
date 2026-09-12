@@ -28,6 +28,7 @@ class TestE44Architecture(unittest.TestCase):
     def test_backbone_reference_is_wired_for_highres_head(self):
         text = BASE_MODEL.read_text()
         self.assertIn("use_highres_visual", text)
+        self.assertIn("weakref.ref(self.backbone)", text)
         self.assertIn("self.head.backbone_ref = self.backbone", text)
 
     def test_head_contains_explicit_2d_visual_memory_contract(self):

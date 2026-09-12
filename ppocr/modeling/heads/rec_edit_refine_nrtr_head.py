@@ -212,7 +212,10 @@ class MultiHeadEditRefineNRTR(MultiHead):
         ctc_part = ctc_part + self.ctc_type_embed
         parts = [ctc_part]
         if self.use_highres_visual:
-            recon_feat = getattr(self.backbone_ref, "recon_feat", None)
+            backbone = self.backbone_ref
+            if callable(backbone):
+                backbone = backbone()
+            recon_feat = getattr(backbone, "recon_feat", None)
             if recon_feat is None:
                 raise RuntimeError(
                     "use_highres_visual requires backbone.recon_feat; "

@@ -15,6 +15,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+import weakref
+
 from paddle import nn
 from ppocr.modeling.transforms import build_transform
 from ppocr.modeling.backbones import build_backbone
@@ -84,7 +86,15 @@ class BaseModel(nn.Layer):
                 # height-collapsing pool. The head has no other way to reach
                 # into the backbone, so this is a deliberate back-reference
                 # set once at construction time.
-                self.head.backbone_ref = self.backbone
+                # A Paddle Layer assigned as an attribute of another Layer is
+                # registered as a second sublayer.  E44 only needs access to
+                # the already-executed backbone's cached feature, so use a
+                # weak reference for the high-resolution path to avoid
+                # duplicate parameters/state-dict keys.
+                if getattr(self.head, "use_highres_visual", False):
+                    self.head.backbone_ref = weakref.ref(self.backbone)
+                else:
+                    self.head.backbone_ref = self.backbone
 
         self.return_all_feats = config.get("return_all_feats", False)
 
