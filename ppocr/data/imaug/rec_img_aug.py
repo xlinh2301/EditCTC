@@ -17,6 +17,8 @@ import cv2
 import numpy as np
 import random
 import copy
+import json
+import os
 from PIL import Image
 import PIL
 from .text_image_aug import tia_perspective, tia_stretch, tia_distort
@@ -63,6 +65,99 @@ class RecAug(object):
         # bda
         data["image"] = img
         data = self.bda(data)
+        return data
+
+
+class CTCSpanBlurAug(object):
+    """Blur one CTC-collapsed character span during training.
+
+    ``span_index_path`` is generated once with the frozen CTC recognizer and
+    stores normalized frame spans for each training image.  The transform is
+    online: every call samples one stored span and applies a local Gaussian
+    blur to the decoded HWC image before resize/encoding.  Rows without a
+    valid CTC span are left untouched.  The head then computes its seed from
+    the actually blurred image, so correction supervision is only active when
+    the perturbation really causes a CTC error.
+    """
+
+    def __init__(
+        self,
+        span_index_path=None,
+        prob=0.35,
+        min_kernel=9,
+        max_kernel=21,
+        sigma_min=3.0,
+        sigma_max=8.0,
+        expand=0.18,
+        **kwargs,
+    ):
+        self.span_index_path = span_index_path
+        self.prob = float(prob)
+        self.min_kernel = int(min_kernel)
+        self.max_kernel = int(max_kernel)
+        self.sigma_min = float(sigma_min)
+        self.sigma_max = float(sigma_max)
+        self.expand = float(expand)
+        self._spans = None
+
+    def _load_spans(self):
+        if self._spans is not None:
+            return
+        self._spans = {}
+        if not self.span_index_path:
+            return
+        try:
+            with open(self.span_index_path, "r", encoding="utf-8") as f:
+                if self.span_index_path.endswith(".jsonl"):
+                    for line in f:
+                        if line.strip():
+                            row = json.loads(line)
+                            self._spans[os.path.basename(row["file"])] = row.get("spans", [])
+                else:
+                    obj = json.load(f)
+                    self._spans = {
+                        os.path.basename(k): v for k, v in obj.items()
+                    }
+        except (OSError, ValueError, TypeError):
+            # Augmentation is optional; a missing/stale index must not break
+            # ordinary CTC training.
+            self._spans = {}
+
+    def __call__(self, data):
+        if random.random() >= self.prob:
+            return data
+        self._load_spans()
+        img = data.get("image")
+        if not isinstance(img, np.ndarray) or img.ndim != 3 or img.shape[1] < 4:
+            return data
+        spans = self._spans.get(os.path.basename(data.get("img_path", "")), [])
+        spans = [s for s in spans if len(s) >= 2 and float(s[1]) > float(s[0])]
+        if not spans:
+            return data
+        start, end = random.choice(spans)[:2]
+        width = img.shape[1]
+        center = 0.5 * (float(start) + float(end))
+        span_width = max(float(end) - float(start), 1.0 / max(width, 1))
+        left = max(0.0, center - 0.5 * span_width * (1.0 + self.expand))
+        right = min(1.0, center + 0.5 * span_width * (1.0 + self.expand))
+        x0 = max(0, int(round(left * width)))
+        x1 = min(width, int(round(right * width)) + 1)
+        if x1 <= x0:
+            return data
+        kernel = random.randrange(self.min_kernel, self.max_kernel + 1, 2)
+        kernel = max(3, kernel | 1)
+        sigma = random.uniform(self.sigma_min, self.sigma_max)
+        blurred = cv2.GaussianBlur(img, (kernel, kernel), sigmaX=sigma)
+        out = img.copy()
+        out[:, x0:x1] = blurred[:, x0:x1]
+        data["image"] = out
+        data["ctc_span_blur"] = {
+            "start": float(start),
+            "end": float(end),
+            "x0": int(x0),
+            "x1": int(x1),
+            "kernel": int(kernel),
+        }
         return data
 
 

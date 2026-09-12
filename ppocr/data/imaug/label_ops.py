@@ -1305,6 +1305,9 @@ class MultiLabelEncode(BaseRecLabelEncode):
         data_out = dict()
         data_out["img_path"] = data.get("img_path", None)
         data_out["image"] = data["image"]
+        # Preserve optional online corruption metadata for audit/debugging.
+        if "ctc_span_blur" in data:
+            data_out["ctc_span_blur"] = data["ctc_span_blur"]
         if "recon_image" in data:
             # passthrough for the optional reconstruction-branch target;
             # this method otherwise rebuilds a fresh dict and would silently

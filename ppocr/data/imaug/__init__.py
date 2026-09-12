@@ -30,7 +30,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from .operators import DecodeImage, KeepKeys
-from .rec_img_aug import RecAug, RecConAug, RecResizeImg
+from .rec_img_aug import CTCSpanBlurAug, RecAug, RecConAug, RecResizeImg
 from .label_ops import MultiLabelEncode
 
 
