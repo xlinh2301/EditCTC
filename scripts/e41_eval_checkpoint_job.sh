@@ -49,32 +49,43 @@ export PYTHONPATH="$CODE${PYTHONPATH:+:$PYTHONPATH}"
      Global.branch_log_path="$BRANCH" \
      Architecture.Head.branch_debug=True
 
-"$PY" - "$EVAL_LABEL_FILE" "$BRANCH" "$MISSING" "$SUMMARY" <<'PY'
+"$PY" - "$EVAL_LABEL_FILE" "$BRANCH" "$PRED" "$MISSING" "$SUMMARY" <<'PY'
 import json, sys
 from pathlib import Path
 labels = {}
-label_path, branch_path, missing_path, summary_path = map(Path, sys.argv[1:])
+label_path, branch_path, pred_path, missing_path, summary_path = map(Path, sys.argv[1:])
 for line in label_path.read_text(encoding='utf-8').splitlines():
     if line.strip():
         name, text = line.split('\t', 1)
         labels[Path(name).name] = text
-rows = [json.loads(x) for x in branch_path.read_text(encoding='utf-8').splitlines() if x.strip()]
 m = {k: 0 for k in ('evaluated','ctc_correct','seed_correct','nrtr_correct','final_correct','changed','helped','hurt')}
-for row in rows:
-    name = Path(row['file']).name
-    gt = labels.get(name)
-    if gt is None: continue
-    m['evaluated'] += 1
-    ctc = row['ctc']['text']; seed = row['nerd']['seed_text']; final = row['final']['text']
-    nrtr = row.get('nrtr') or {}
-    m['ctc_correct'] += ctc == gt
-    m['seed_correct'] += seed == gt
-    m['nrtr_correct'] += nrtr.get('text') == gt
-    m['final_correct'] += final == gt
-    changed = seed != final or row['nerd']['changed_positions'] > 0
-    m['changed'] += changed
-    m['helped'] += seed != gt and final == gt
-    m['hurt'] += seed == gt and final != gt
+if branch_path.exists() and branch_path.stat().st_size:
+    rows = [json.loads(x) for x in branch_path.read_text(encoding='utf-8').splitlines() if x.strip()]
+    for row in rows:
+        name = Path(row['file']).name
+        gt = labels.get(name)
+        if gt is None: continue
+        m['evaluated'] += 1
+        ctc = row['ctc']['text']; seed = row['nerd']['seed_text']; final = row['final']['text']
+        nrtr = row.get('nrtr') or {}
+        m['ctc_correct'] += ctc == gt
+        m['seed_correct'] += seed == gt
+        m['nrtr_correct'] += nrtr.get('text') == gt
+        m['final_correct'] += final == gt
+        changed = seed != final or row['nerd']['changed_positions'] > 0
+        m['changed'] += changed
+        m['helped'] += seed != gt and final == gt
+        m['hurt'] += seed == gt and final != gt
+else:
+    # Integrated NRTR head currently returns only final CTC-vocabulary output;
+    # retain a valid final-accuracy summary even without branch diagnostics.
+    for line in pred_path.read_text(encoding='utf-8').splitlines():
+        parts = line.split('\t')
+        if len(parts) < 2: continue
+        gt = labels.get(Path(parts[0]).name)
+        if gt is None: continue
+        m['evaluated'] += 1
+        m['final_correct'] += parts[1] == gt
 d = max(m['evaluated'], 1)
 m.update({k + '_accuracy': m[k] / d for k in ('ctc','seed','nrtr','final')})
 m['skipped_missing_images'] = sum(1 for x in missing_path.read_text().splitlines() if x.strip())
