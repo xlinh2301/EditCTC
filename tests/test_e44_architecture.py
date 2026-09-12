@@ -39,6 +39,32 @@ class TestE44Architecture(unittest.TestCase):
         self.assertIn("visual_col_embed", text)
         self.assertIn("recon_feat", text)
 
+    def test_training_loop_reapplies_frozen_batchnorm_eval(self):
+        text = (ROOT / "tools/program.py").read_text()
+        self.assertIn("def keep_frozen_ctc_batchnorm_eval", text)
+        self.assertIn("keep_frozen_ctc_batchnorm_eval(model)", text)
+
+    def test_frozen_ctc_batchnorm_does_not_reenter_train_mode(self):
+        try:
+            import paddle
+            from tools.program import keep_frozen_ctc_batchnorm_eval
+        except ImportError:
+            self.skipTest("PaddlePaddle is available on the Arbor runtime")
+
+        class ToyModel(paddle.nn.Layer):
+            def __init__(self):
+                super().__init__()
+                self.backbone = paddle.nn.BatchNorm2D(3)
+                self.editor = paddle.nn.Dropout(p=0.1)
+
+        model = ToyModel()
+        model.eval()
+        model.train()  # mirrors the outer training loop
+        frozen_bn = keep_frozen_ctc_batchnorm_eval(model)
+        self.assertEqual(frozen_bn, 1)
+        self.assertFalse(model.backbone.training)
+        self.assertTrue(model.editor.training)
+
     def test_shared_visual_memory_preserves_2d_tokens_and_shape(self):
         try:
             import paddle

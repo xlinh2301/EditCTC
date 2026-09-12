@@ -41,6 +41,37 @@ from ppocr.data import build_dataloader
 from ppocr.utils.export_model import export
 
 
+def keep_frozen_ctc_batchnorm_eval(model):
+    """Keep BatchNorm state fixed for a frozen CTC/backbone path.
+
+    ``stop_gradient`` prevents parameter updates but does not prevent
+    BatchNorm running mean/variance from changing while the outer model is in
+    training mode.  This matters for correction training with synthetic blur:
+    the frozen recognizer must see the same normalization statistics as the
+    source CTC checkpoint.  The training loop calls ``model.train()`` every
+    batch, so this helper is intentionally idempotent and must run immediately
+    afterwards.
+
+    Only BatchNorm layers belonging to the frozen CTC path are switched to
+    eval mode.  The correction/editor layers remain in training mode.
+    """
+    frozen_parts = ("backbone", "neck", "ctc_encoder", "ctc_head")
+    try:
+        from paddle.nn.layer.norm import _BatchNormBase
+    except ImportError:  # pragma: no cover - defensive for Paddle variants
+        _BatchNormBase = ()
+
+    frozen_bn = 0
+    for name, layer in model.named_sublayers():
+        path_parts = name.split(".")
+        if not any(part in path_parts for part in frozen_parts):
+            continue
+        if isinstance(layer, _BatchNormBase):
+            layer.eval()
+            frozen_bn += 1
+    return frozen_bn
+
+
 class ArgsParser(ArgumentParser):
     def __init__(self):
         super(ArgsParser, self).__init__(formatter_class=RawDescriptionHelpFormatter)
@@ -332,6 +363,11 @@ def train(
 
         for idx, batch in enumerate(train_dataloader):
             model.train()
+            if config["Global"].get("freeze_ctc_backbone"):
+                # ``model.train()`` recursively re-enables frozen BatchNorm
+                # layers.  Re-apply eval mode before the forward pass so
+                # running statistics cannot drift on correction augmentations.
+                keep_frozen_ctc_batchnorm_eval(model)
             profiler.add_profiler_step(profiler_options)
             train_reader_cost += time.time() - reader_start
             if idx >= max_iter:
