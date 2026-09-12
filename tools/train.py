@@ -275,6 +275,22 @@ def main(config, device, logger, vdl_writer):
     # epochs (fixes the moving-target problem the prior joint-training classweight
     # runs were blamed on). Edit branch cannot perturb the shared encoder, so it
     # can only help (or no-op) at inference, never hurt CTC.
+    if config["Global"].get("freeze_ctc_backbone"):
+        # Keep the pretrained CTC seed stationary while targeted image
+        # corruption teaches only the integrated NRTR/edit refinement path.
+        # This prevents online blur from making the shared recognizer chase a
+        # synthetic corruption distribution and losing clean-data accuracy.
+        n_frozen = n_train = 0
+        frozen_parts = ("backbone", "neck", "ctc_encoder", "ctc_head")
+        for _name, _p in model.named_parameters():
+            if any(part in _name for part in frozen_parts):
+                _p.stop_gradient = True
+                n_frozen += 1
+            else:
+                _p.stop_gradient = False
+                n_train += 1
+        logger.info("freeze_ctc_backbone: froze {} params, training {} correction/image params".format(n_frozen, n_train))
+
     if config["Global"].get("freeze_except_edit"):
         n_frozen = n_train = 0
         for _name, _p in model.named_parameters():
