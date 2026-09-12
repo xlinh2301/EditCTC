@@ -11,6 +11,7 @@ from __future__ import absolute_import, division, print_function
 import numpy as np
 import paddle
 from paddle import nn
+from paddle.nn import functional as F
 
 from .rec_multi_head import MultiHead
 from .rec_nrtr_head import TransformerBlock
@@ -108,17 +109,26 @@ class SharedHighResVisualMemory(nn.Layer):
         if feature_map is None or len(feature_map.shape) != 4:
             raise ValueError("high-resolution visual feature must be [B,C,H,W]")
         _, _, height, width = feature_map.shape
-        if height > self.max_height or width > self.max_width:
-            raise ValueError(
-                "visual position range exceeded: got HxW={}x{}, max={}x{}".format(
-                    height, width, self.max_height, self.max_width
-                )
-            )
         x = self.proj(feature_map)
         x = x + self.local_mix(x)
         x = x.transpose([0, 2, 3, 1])
-        x = x + self.visual_row_embed[:, :height, :, :]
-        x = x + self.visual_col_embed[:, :, :width, :]
+        # Training normally uses HxW <= max_height x max_width.  Dynamic
+        # inference resizing can produce a slightly wider feature map; use
+        # bilinear interpolation of the learned 2D table instead of failing
+        # or silently dropping the extra columns.
+        base_h = min(height, self.max_height)
+        base_w = min(width, self.max_width)
+        pos = self.visual_row_embed[:, :base_h, :, :] + self.visual_col_embed[
+            :, :, :base_w, :
+        ]
+        if base_h != height or base_w != width:
+            pos = F.interpolate(
+                pos.transpose([0, 3, 1, 2]),
+                size=[height, width],
+                mode="bilinear",
+                align_corners=False,
+            ).transpose([0, 2, 3, 1])
+        x = x + pos
         x = x.reshape([0, height * width, x.shape[-1]])
         x = self.dropout(x + self.visual_type_embed)
         for block in self.blocks:

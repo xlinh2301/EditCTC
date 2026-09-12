@@ -64,7 +64,7 @@ class TestE44Architecture(unittest.TestCase):
         self.assertEqual(list(y.shape), [2, 15, 16])
         self.assertTrue(bool(paddle.all(paddle.isfinite(y)).item()))
 
-    def test_shared_visual_memory_rejects_unseen_position_range(self):
+    def test_shared_visual_memory_interpolates_dynamic_position_range(self):
         try:
             import paddle
         except ImportError:
@@ -82,8 +82,9 @@ class TestE44Architecture(unittest.TestCase):
             nhead=4,
             dropout=0.0,
         )
-        with self.assertRaisesRegex(ValueError, "position range"):
-            module(paddle.zeros([1, 8, 3, 4]))
+        y = module(paddle.zeros([1, 8, 3, 6]))
+        self.assertEqual(list(y.shape), [1, 18, 16])
+        self.assertTrue(bool(paddle.all(paddle.isfinite(y)).item()))
 
 
 if __name__ == "__main__":
