@@ -15,6 +15,14 @@ class TestE37Verifier(unittest.TestCase):
         self.assertIn("candidate_lens", text)
         self.assertIn("cand * image", text)
 
+    def test_counterfactual_group_keeps_seed_and_scores_delta(self):
+        from tools.build_e37_counterfactual_bank import make_group
+
+        group = make_group({"image": "x.jpg", "seed": "38", "gt": "88", "split": "train"})
+        self.assertEqual(group["candidates"][0]["kind"], "seed")
+        self.assertEqual(group["candidates"][0]["delta_ed"], 0)
+        self.assertTrue(any(c["kind"] == "gt" and c["delta_ed"] > 0 for c in group["candidates"]))
+
     def test_verifier_rejects_invalid_shapes(self):
         try:
             import paddle

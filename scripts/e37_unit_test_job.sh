@@ -16,5 +16,6 @@ REQUIRED_VRAM=1200 source "$WS/slurm/gpu_setup.sh"
 cd "$CODE"
 export PYTHONPATH="$CODE${PYTHONPATH:+:$PYTHONPATH}"
 "$PY" -m unittest -v tests/test_e37_verifier.py tests/test_e44_architecture.py
-"$PY" -m py_compile ppocr/modeling/heads/sequence_verifier.py tools/program.py
+"$PY" -m py_compile ppocr/modeling/heads/sequence_verifier.py \
+  tools/build_e37_counterfactual_bank.py tools/train_e37_verifier.py tools/program.py
 echo "E37 verifier unit-test gate passed"
