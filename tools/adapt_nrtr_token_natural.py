@@ -49,9 +49,11 @@ class NaturalDataset(paddle.io.Dataset):
         return image, s, np.int64(len(seed)), g, np.int64(len(gt))
 
 
-def load_rows(path, positive_repeat):
+def load_rows(path, positive_repeat, same_length_only=False):
     rows = [json.loads(x) for x in Path(path).read_text().splitlines() if x.strip()]
     train = [r for r in rows if r.get("split") == "train" and r.get("wrong_seed")]
+    if same_length_only:
+        train = [r for r in train if len(r.get("seed", "")) == len(r.get("gt", ""))]
     # Keep all hard KEEP rows, but oversample real errors.  Same-length errors
     # are especially useful for this substitution-only token head.
     hard = [r for r in rows if r.get("split") == "train" and not r.get("wrong_seed")]
@@ -80,6 +82,7 @@ def main():
     ap.add_argument("--batch-size", type=int, default=64)
     ap.add_argument("--lr", type=float, default=1e-4)
     ap.add_argument("--positive-repeat", type=int, default=20)
+    ap.add_argument("--same-length-only", action="store_true")
     args = ap.parse_args()
     paddle.set_device("gpu" if paddle.is_compiled_with_cuda() else "cpu")
     cfg = build_cfg(args.config)
@@ -97,7 +100,7 @@ def main():
     edit_params = list(head.edit_op_head.parameters()) + list(head.edit_tok_head.parameters())
     opt = paddle.optimizer.Adam(learning_rate=args.lr, parameters=edit_params)
     loss_fn = EditLossTokenRefine(max_length=25)
-    train_rows, val_rows = load_rows(args.manifest, args.positive_repeat)
+    train_rows, val_rows = load_rows(args.manifest, args.positive_repeat, args.same_length_only)
     loader = paddle.io.DataLoader(NaturalDataset(train_rows), batch_size=args.batch_size,
                                   shuffle=True, drop_last=True, num_workers=0)
     history = []
@@ -128,6 +131,7 @@ def main():
     (args.out.parent / (args.out.name + ".json")).write_text(json.dumps({
         "experiment": "natural_cached_seed_token_refine", "train_rows": len(train_rows),
         "val_rows": len(val_rows), "positive_repeat": args.positive_repeat,
+        "same_length_only": args.same_length_only,
         "frozen_ctc_backbone": True, "cross_data_used_for_training": False,
         "history": history,
     }, indent=2) + "\n")
