@@ -28,17 +28,19 @@ def ctc_seed_and_margin(ctc_logits, max_seed_len):
     seeds = np.zeros((bsz, max_seed_len), dtype="int64")
     lens = np.zeros((bsz,), dtype="int64")
     margins = np.zeros((bsz, max_seed_len), dtype="float32")
+    alternatives = np.zeros((bsz, max_seed_len), dtype="int64")
     for b in range(bsz):
         prev, n = -1, 0
         for t, tid in enumerate(ids[b].tolist()):
             if tid != 0 and tid != prev and n < max_seed_len:
                 seeds[b, n] = tid
-                top2 = np.partition(probs[b, t], -2)[-2:]
-                margins[b, n] = float(top2[-1] - top2[-2])
+                order = np.argsort(probs[b, t])
+                margins[b, n] = float(probs[b, t, order[-1]] - probs[b, t, order[-2]])
+                alternatives[b, n] = int(order[-2])
                 n += 1
             prev = tid
         lens[b] = n
-    return seeds, lens, margins
+    return seeds, lens, margins, alternatives
 
 
 class MultiHeadEditRefineNRTR(MultiHead):
@@ -74,6 +76,7 @@ class MultiHeadEditRefineNRTR(MultiHead):
         self.edit_allowed_ops = kwargs.get("edit_allowed_ops")
         self.edit_mode = kwargs.get("edit_mode", "four_way")
         self.train_seed_corrupt_prob = kwargs.get("train_seed_corrupt_prob", 0.0)
+        self.train_seed_corrupt_mode = kwargs.get("train_seed_corrupt_mode", "random")
         self.edit_gate_threshold = kwargs.get("edit_gate_threshold", 0.5)
         self.edit_delta_threshold = kwargs.get("edit_delta_threshold", 0.05)
         if self.edit_mode == "factorized":
@@ -124,7 +127,7 @@ class MultiHeadEditRefineNRTR(MultiHead):
 
     def _edit_forward(self, ctc_out, memory, length_logits, seed_ids=None, seed_lens=None):
         if seed_ids is None:
-            seeds_np, lens_np, _ = ctc_seed_and_margin(ctc_out, self.max_seed_len)
+            seeds_np, lens_np, _, _ = ctc_seed_and_margin(ctc_out, self.max_seed_len)
             seed_ids = paddle.to_tensor(seeds_np, dtype="int64")
             seed_lens = paddle.to_tensor(lens_np, dtype="int64")
         hidden = self._seed_hidden(memory, seed_ids)
@@ -133,7 +136,7 @@ class MultiHeadEditRefineNRTR(MultiHead):
         return {"op_logits": op_logits, "tok_logits": tok_logits,
                 "seed_ids": seed_ids, "seed_lens": seed_lens}
 
-    def _corrupt_seed_tokens(self, seeds_np, lens_np, margins_np):
+    def _corrupt_seed_tokens(self, seeds_np, lens_np, margins_np, alternatives_np=None):
         """Create guaranteed-ish replacement positives for factorized training.
 
         This is training-only denoising: CTC/backbone outputs remain untouched,
@@ -156,7 +159,12 @@ class MultiHeadEditRefineNRTR(MultiHead):
             old = int(seeds_np[b, pos])
             if self.vocab_size <= 2:
                 continue
-            new = int(np.random.randint(1, self.vocab_size))
+            if self.train_seed_corrupt_mode == "ctc_alt" and alternatives_np is not None:
+                new = int(alternatives_np[b, pos])
+                if new <= 0 or new >= self.vocab_size:
+                    new = int(np.random.randint(1, self.vocab_size))
+            else:
+                new = int(np.random.randint(1, self.vocab_size))
             if new == old:
                 new = 1 + (old % (self.vocab_size - 1))
             seeds_np[b, pos] = new
@@ -168,9 +176,11 @@ class MultiHeadEditRefineNRTR(MultiHead):
         ctc_memory, memory = self._memory(x, original_image)
         ctc_out = self.ctc_head(ctc_memory, targets)
         length_logits = self.length_head(ctc_memory) if self.use_length_head else None
-        seeds_np, lens_np, margins = ctc_seed_and_margin(ctc_out, self.max_seed_len)
+        seeds_np, lens_np, margins, alternatives = ctc_seed_and_margin(
+            ctc_out, self.max_seed_len
+        )
         seeds_np, lens_np, margins = self._corrupt_seed_tokens(
-            seeds_np, lens_np, margins
+            seeds_np, lens_np, margins, alternatives
         )
         seeds = paddle.to_tensor(seeds_np, dtype="int64")
         lens = paddle.to_tensor(lens_np, dtype="int64")
