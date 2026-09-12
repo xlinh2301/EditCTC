@@ -87,7 +87,7 @@ else:
         m['evaluated'] += 1
         m['final_correct'] += parts[1] == gt
 d = max(m['evaluated'], 1)
-m.update({k + '_accuracy': m[k] / d for k in ('ctc','seed','nrtr','final')})
+m.update({k + '_accuracy': m[k + '_correct'] / d for k in ('ctc','seed','nrtr','final')})
 m['skipped_missing_images'] = sum(1 for x in missing_path.read_text().splitlines() if x.strip())
 m['missing_files'] = [x.split('\t',1)[0] for x in missing_path.read_text().splitlines() if x.strip()]
 summary_path.write_text(json.dumps(m, indent=2) + '\n', encoding='utf-8')
