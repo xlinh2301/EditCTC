@@ -15,7 +15,7 @@ CODE="$WS/release_EditCTC/code"
 PY="$CODE/.venv/bin/python"
 CFG="$CODE/config/PP-OCRv6_small_rec_s1024_nrtr_blur_online.yml"
 BASE="$WS/release_EditCTC/checkpoints/s1024/best_accuracy"
-OUT="$WS/Data/EditCTC_arbor_runs/editctc-nerd-lcb/e41/nrtr_blur_online"
+OUT="$WS/Data/EditCTC_arbor_runs/editctc-nerd-lcb/e41/nrtr_blur_online_frozen"
 
 REQUIRED_VRAM=1200 source "$WS/slurm/gpu_setup.sh"
 mkdir -p "$OUT"
