@@ -131,6 +131,8 @@ class CTCSpanBlurAug(object):
         if not isinstance(img, np.ndarray) or img.ndim != 3 or img.shape[1] < 4:
             return data
         spans = self._spans.get(os.path.basename(data.get("img_path", "")), [])
+        if isinstance(spans, dict):
+            spans = spans.get("spans", [])
         spans = [s for s in spans if len(s) >= 2 and float(s[1]) > float(s[0])]
         if not spans:
             return data
