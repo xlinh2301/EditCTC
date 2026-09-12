@@ -72,6 +72,15 @@ class MultiHeadEditRefineNRTR(MultiHead):
         self.edit_tok_head = nn.Linear(self.nrtr_dim, self.vocab_size)
         self.edit_head_dropout = nn.Dropout(kwargs.get("edit_head_dropout", 0.2))
         self.edit_allowed_ops = kwargs.get("edit_allowed_ops")
+        self.edit_mode = kwargs.get("edit_mode", "four_way")
+        self.train_seed_corrupt_prob = kwargs.get("train_seed_corrupt_prob", 0.0)
+        self.edit_gate_threshold = kwargs.get("edit_gate_threshold", 0.5)
+        if self.edit_mode == "factorized":
+            # Residual editor: class 0 means KEEP and class 1 means the
+            # replacement head should be used. DELETE/INSERT are deliberately
+            # absent until substitution has a positive held-out result.
+            self.edit_op_head = nn.Linear(self.nrtr_dim, 2)
+            self.edit_tok_head = nn.Linear(self.nrtr_dim, self.vocab_size)
         # Inference-only branch tracing used by the test audit.  The normal
         # output remains the refined CTC tensor unless this flag is enabled.
         self.branch_debug = kwargs.get("branch_debug", False)
@@ -123,11 +132,45 @@ class MultiHeadEditRefineNRTR(MultiHead):
         return {"op_logits": op_logits, "tok_logits": tok_logits,
                 "seed_ids": seed_ids, "seed_lens": seed_lens}
 
+    def _corrupt_seed_tokens(self, seeds_np, lens_np, margins_np):
+        """Create guaranteed-ish replacement positives for factorized training.
+
+        This is training-only denoising: CTC/backbone outputs remain untouched,
+        while the edit decoder sees a one-token wrong seed on a subset of
+        samples.  The loss aligns this altered seed against the ground truth.
+        """
+        if (
+            not self.training
+            or self.edit_mode != "factorized"
+            or self.train_seed_corrupt_prob <= 0
+        ):
+            return seeds_np, lens_np, margins_np
+        seeds_np = seeds_np.copy()
+        margins_np = margins_np.copy()
+        for b, n_raw in enumerate(lens_np):
+            n = int(n_raw)
+            if n <= 0 or np.random.random() >= self.train_seed_corrupt_prob:
+                continue
+            pos = int(np.random.randint(n))
+            old = int(seeds_np[b, pos])
+            if self.vocab_size <= 2:
+                continue
+            new = int(np.random.randint(1, self.vocab_size))
+            if new == old:
+                new = 1 + (old % (self.vocab_size - 1))
+            seeds_np[b, pos] = new
+            # The altered token is intentionally uncertain for diagnostics.
+            margins_np[b, pos] = 0.0
+        return seeds_np, lens_np, margins_np
+
     def forward(self, x, targets=None, original_image=None):
         ctc_memory, memory = self._memory(x, original_image)
         ctc_out = self.ctc_head(ctc_memory, targets)
         length_logits = self.length_head(ctc_memory) if self.use_length_head else None
         seeds_np, lens_np, margins = ctc_seed_and_margin(ctc_out, self.max_seed_len)
+        seeds_np, lens_np, margins = self._corrupt_seed_tokens(
+            seeds_np, lens_np, margins
+        )
         seeds = paddle.to_tensor(seeds_np, dtype="int64")
         lens = paddle.to_tensor(lens_np, dtype="int64")
         edit_out = self._edit_forward(ctc_out, memory, length_logits, seeds, lens)
@@ -141,9 +184,14 @@ class MultiHeadEditRefineNRTR(MultiHead):
         op_logits = edit_out["op_logits"]
         if self.edit_allowed_ops is not None:
             blocked = [i for i in range(4) if i not in self.edit_allowed_ops]
+            blocked = [i for i in blocked if i < op_logits.shape[-1]]
             if blocked:
                 op_logits[:, :, blocked] = -1e9
-        op_ids = paddle.argmax(op_logits, axis=2).numpy()
+        if self.edit_mode == "factorized":
+            gate_prob = paddle.nn.functional.softmax(op_logits, axis=2)[:, :, 1]
+            op_ids = (gate_prob >= self.edit_gate_threshold).astype("int64").numpy()
+        else:
+            op_ids = paddle.argmax(op_logits, axis=2).numpy()
         tok_ids = paddle.argmax(edit_out["tok_logits"], axis=2).numpy()
         refined = []
         for b, n in enumerate(lens_np):

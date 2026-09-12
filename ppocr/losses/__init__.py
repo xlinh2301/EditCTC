@@ -23,11 +23,13 @@ import paddle
 import paddle.nn as nn
 
 from .rec_multi_loss_editrefine_uncertainty import MultiLossEditRefineUncertainty
+from .rec_multi_loss_editrefine_factorized import MultiLossEditRefineFactorized
 
 
 def build_loss(config):
     support_dict = [
         "MultiLossEditRefineUncertainty",
+        "MultiLossEditRefineFactorized",
     ]
     config = copy.deepcopy(config)
     module_name = config.pop("name")
