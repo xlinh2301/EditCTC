@@ -133,7 +133,17 @@ class CTCSpanBlurAug(object):
         spans = self._spans.get(os.path.basename(data.get("img_path", "")), [])
         if isinstance(spans, dict):
             spans = spans.get("spans", [])
-        spans = [s for s in spans if len(s) >= 2 and float(s[1]) > float(s[0])]
+        valid_spans = []
+        for span in spans:
+            if not isinstance(span, (list, tuple)) or len(span) < 2:
+                continue
+            try:
+                start_value, end_value = float(span[0]), float(span[1])
+            except (TypeError, ValueError):
+                continue
+            if end_value > start_value:
+                valid_spans.append((start_value, end_value))
+        spans = valid_spans
         if not spans:
             return data
         start, end = random.choice(spans)[:2]
