@@ -199,13 +199,13 @@ class MultiHeadEditRefineNRTR(MultiHead):
             # confident, and has a margin over the seed token probability.
             tok_probs = paddle.nn.functional.softmax(edit_out["tok_logits"], axis=2)
             tok_ids_t = paddle.argmax(tok_probs, axis=2)
-            seed_clip = paddle.clip(seed_ids, 0, tok_probs.shape[2] - 1)
+            seed_clip = paddle.clip(seeds, 0, tok_probs.shape[2] - 1)
             seed_prob = paddle.take_along_axis(
                 tok_probs, seed_clip.unsqueeze(-1), axis=2
             ).squeeze(-1)
             best_prob = paddle.max(tok_probs, axis=2)
             edit_mask = paddle.logical_and(
-                tok_ids_t != seed_ids,
+                tok_ids_t != seeds,
                 paddle.logical_and(
                     best_prob >= self.edit_gate_threshold,
                     best_prob - seed_prob >= self.edit_delta_threshold,
