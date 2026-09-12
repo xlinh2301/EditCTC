@@ -29,6 +29,9 @@ fi
 if [[ -n "${EVAL_DELTA_THRESHOLD:-}" ]]; then
   EXTRA_OVERRIDES+=("Architecture.Head.edit_delta_threshold=$EVAL_DELTA_THRESHOLD")
 fi
+if [[ -n "${EVAL_EDIT_PRETRAINED:-}" ]]; then
+  EXTRA_OVERRIDES+=("Global.edit_refine_pretrained=$EVAL_EDIT_PRETRAINED")
+fi
 LIST="$EVAL_OUT_DIR/eval_list.txt"
 MISSING="$EVAL_OUT_DIR/skipped_missing_images.txt"
 BRANCH="$EVAL_OUT_DIR/branch_audit.jsonl"
