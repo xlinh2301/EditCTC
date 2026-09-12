@@ -75,6 +75,7 @@ class MultiHeadEditRefineNRTR(MultiHead):
         self.edit_mode = kwargs.get("edit_mode", "four_way")
         self.train_seed_corrupt_prob = kwargs.get("train_seed_corrupt_prob", 0.0)
         self.edit_gate_threshold = kwargs.get("edit_gate_threshold", 0.5)
+        self.edit_delta_threshold = kwargs.get("edit_delta_threshold", 0.05)
         if self.edit_mode == "factorized":
             # Residual editor: class 0 means KEEP and class 1 means the
             # replacement head should be used. DELETE/INSERT are deliberately
@@ -141,7 +142,7 @@ class MultiHeadEditRefineNRTR(MultiHead):
         """
         if (
             not self.training
-            or self.edit_mode != "factorized"
+            or self.edit_mode not in ("factorized", "token_refine")
             or self.train_seed_corrupt_prob <= 0
         ):
             return seeds_np, lens_np, margins_np
@@ -190,6 +191,27 @@ class MultiHeadEditRefineNRTR(MultiHead):
         if self.edit_mode == "factorized":
             gate_prob = paddle.nn.functional.softmax(op_logits, axis=2)[:, :, 1]
             op_ids = (gate_prob >= self.edit_gate_threshold).astype("int64").numpy()
+        elif self.edit_mode == "token_refine":
+            # Direct denoising refinement: the token head is trained on every
+            # aligned KEEP/REPLACE slot, so no rare EDIT/KEEP classifier can
+            # collapse to the majority KEEP class.  A replacement is accepted
+            # only when the predicted token is different, sufficiently
+            # confident, and has a margin over the seed token probability.
+            tok_probs = paddle.nn.functional.softmax(edit_out["tok_logits"], axis=2)
+            tok_ids_t = paddle.argmax(tok_probs, axis=2)
+            seed_clip = paddle.clip(seed_ids, 0, tok_probs.shape[2] - 1)
+            seed_prob = paddle.take_along_axis(
+                tok_probs, seed_clip.unsqueeze(-1), axis=2
+            ).squeeze(-1)
+            best_prob = paddle.max(tok_probs, axis=2)
+            edit_mask = paddle.logical_and(
+                tok_ids_t != seed_ids,
+                paddle.logical_and(
+                    best_prob >= self.edit_gate_threshold,
+                    best_prob - seed_prob >= self.edit_delta_threshold,
+                ),
+            )
+            op_ids = edit_mask.astype("int64").numpy()
         else:
             op_ids = paddle.argmax(op_logits, axis=2).numpy()
         tok_ids = paddle.argmax(edit_out["tok_logits"], axis=2).numpy()
