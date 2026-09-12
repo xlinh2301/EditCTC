@@ -14,7 +14,7 @@ set -euo pipefail
 WS=/datastore/cndt_thangcpd/linhtruong/workspace5
 CODE=/datastore/cndt_thangcpd/linhtruong/workspace5/release_EditCTC/code
 PY="$CODE/.venv/bin/python"
-CFG="$CODE/config/PP-OCRv6_small_rec_s1024_nrtr_blur_online_w1.yml"
+CFG="${EVAL_CONFIG:-$CODE/config/PP-OCRv6_small_rec_s1024_nrtr_blur_online_w1.yml}"
 : "${EVAL_IMAGE_DIR:?EVAL_IMAGE_DIR is required}"
 : "${EVAL_LABEL_FILE:?EVAL_LABEL_FILE is required}"
 : "${EVAL_OUT_DIR:?EVAL_OUT_DIR is required}"
