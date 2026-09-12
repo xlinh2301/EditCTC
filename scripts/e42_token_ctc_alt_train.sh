@@ -10,7 +10,7 @@ set -euo pipefail
 WS=/datastore/cndt_thangcpd/linhtruong/workspace5
 CODE="$WS/release_EditCTC/code"
 PY="$CODE/.venv/bin/python"
-CFG="$CODE/config/PP-OCRv6_small_rec_s1024_token_refine.yml"
+CFG="$CODE/config/PP-OCRv6_small_rec_s1024_token_ctc_alt.yml"
 BASE="$WS/release_EditCTC/checkpoints/s1024/best_accuracy"
 OUT="$WS/Data/EditCTC_arbor_runs/editctc-nerd-lcb/e42/token_ctc_alt"
 REQUIRED_VRAM=1200 source "$WS/slurm/gpu_setup.sh"
