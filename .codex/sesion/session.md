@@ -513,3 +513,20 @@ on Cross as a locked external test, with `helped > hurt` and correction recall a
   baseline; this is an architecture/training probe, not a deployable model.
   Best checkpoint is `.../e41/nrtr_integrated_30ep/best_accuracy` and Cross
   data remains evaluation-only.
+- To address E41 overfit, added `CTCSpanBlurAug` plus
+  `tools/build_ctc_span_index.py`. Job `70826` built a leakage-free frozen
+  CTC span index for all 2,462 Indomain train images (mean 4.56 collapsed
+  spans/image); the transform samples one span online and applies a local
+  Gaussian blur with clean examples retained. A first 70827 launch exposed a
+  malformed-index reader bug and was stopped; the corrected smoke job `70829`
+  ran cleanly and showed a real perturbation (`EditPredChangeRate=0.746` on
+  the first batch before the head reverted to KEEP).
+- Joint E41-B run `70830` was stopped after validation collapsed to `0.3122`
+  at epoch 6, confirming that allowing the shared CTC/backbone to adapt to
+  50% blurred images causes clean-data overfit. Added `freeze_ctc_backbone`
+  in `tools/train.py` and relaunched frozen correction/image-head training as
+  `70831` (`e41/nrtr_blur_online_frozen`). At epoch 6 its Indomain validation
+  is `0.8926829`, above the `0.8902439` CTC baseline, with stable CTC loss;
+  edit change rate is still near zero after warm-up, so correction utility is
+  not established yet. A separate blur-effect audit is queued for the next
+  free GPU to measure `clean-correct -> blur-wrong` directly.
