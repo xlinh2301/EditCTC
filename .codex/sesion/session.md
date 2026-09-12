@@ -563,3 +563,10 @@ Because the binary/four-way KEEP gate still collapsed at test time, added a dist
 
 - Filtered natural adaptation to the 12 same-length Indomain substitution errors (30x oversampled) plus hard KEEP, excluding length-changing rows from token loss. Job 70879 completed with loss `0.474 -> 0.268`.
 - Test jobs 70880/70881: Indomain `541 -> 540`, changed=4/helped=0/hurt=1; Cross `1038 -> 1040`, changed=9/helped=3/hurt=1. Metrics are essentially identical to E43 full natural adaptation, so length-noise filtering alone is insufficient. Natural supervision is promising for edit activity but the available bank is too small and not representative enough to beat baseline.
+
+## 2026-09-12 — Current architecture snapshot
+
+- Current model is `PPLCNetV4-small` over `[3,48,320]`, followed by a CTC head with a 2-block LightSVTR neck (`dims=120`). The CTC output produces posterior, greedy collapsed seed, margin, and optional Top-2 alternative.
+- `MultiHeadEditRefineNRTR` integrates a 4-layer, 384-dimensional NRTR decoder into the EditCTC head; there is no separate NRTR loss/output branch. Decoder memory concatenates projected CTC sequence features with 80 tokens from a small raw-image Conv2D path, then conditions on `[BOS + CTC seed tokens]`.
+- In the active `token_refine` path, the token head predicts a token at every seed slot. Inference applies `KEEP/REPLACE` implicitly: replace only when argmax differs from seed and passes probability (`>=0.5`), probability-delta (`>=0.05`), and optional Top-2 candidate gates. DELETE/INSERT are not active in this path. The physical 4-way op head remains for compatibility but is unused by token-refine inference; the length head is auxiliary and does not gate edits.
+- E43 is an additive natural-seed editor checkpoint loaded on top of the E42 token-refine model. It trains editor heads only using cached natural CTC seeds plus hard KEEP examples; backbone, CTC, and integrated NRTR decoder remain frozen.
