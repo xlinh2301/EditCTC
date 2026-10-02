@@ -1,0 +1,22 @@
+{
+  "editctc": {
+    "EditCTC_ARCH4_AlignCrossAttn_SOTA_s1024.pdparams": "1zDBOMlczNUJGILD3D6vvwqcjQXNHJg3Y",
+    "EditCTC_ARCH4C_AlignConf4D_Best_s2024.pdparams": "1oJTYdTUv_QjwDS-Yo4F-6f0LQkiwPhA2",
+    "EditCTC_ARCH7_GatedFusion_Best_s3024.pdparams": "1cxnAgW5GQcq3wvCSfg7a45Ic69kNPdwi",
+    "EditCTC_ARCH2B_FullConf4D_Best_s3024.pdparams": "1AEAP4I_Bw_g6sKycoz4oEIq5F4DSRmM9",
+    "EditCTC_ARCH3_TemporalAlign_Best_s2024.pdparams": "1estLTQoir9H80G0nert5uOVJBYPVH8yP",
+    "EditCTC_ARCH1_ExplicitHead_Best_s4024.pdparams": "1AIQPwCCuNuYvEAfOKNAgQA07SgmVnqdr",
+    "EditCTC_ARCH5_LocalVisualRefine_Best_s5024.pdparams": "1m3Syd60jL42Di69uQQocfvUwGpsnwixf",
+    "EditCTC_ARCH2A_CTCConf2D_Best_s5024.pdparams": "1cS8yoeNTABmuQ6_-L3sSzBk6gGv1SuAL",
+    "EditCTC_EXP18B_CanonicalBaseline_Best_s3024.pdparams": "1s_wXKuC-bJOwdxFIh0AHJeolMWPsiBJj",
+    "EditCTC_ARCH4B_AlignAppend_Best_s1024.pdparams": "1QP_bLmgHnj08ixnw2TJogKu2_MWMOuN3"
+  },
+  "baselines": {
+    "PPOCRv4_curated_s1024.pdparams": "1Oan5T5pQbT1kwU0IG8FmcArJ5x9u2AcT",
+    "PPOCRv6_curated_s1024.pdparams": "1txAnpXniZNlU2ae7fUo8gGkB0Fn5pRWa",
+    "ABINet_curated_s1024.pth": "1r42r-zIU3L9-zOzxaOtXwJAPZz56i4Bc",
+    "MASTER_curated_s1024.pth": "1er44qs9ltfMhcclDzSp5sFRQfFPLGcZN",
+    "SAR_curated_s1024.pth": "1PzV7D8OM6nTI0FyRt0FaVH6nsQ54c1IK",
+    "SATRN_curated_s1024.pth": "1myj1rQHTLp897iLl9OmyV6x6jCQEnZt7"
+  }
+}

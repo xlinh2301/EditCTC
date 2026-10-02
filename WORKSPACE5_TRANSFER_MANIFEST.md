@@ -142,3 +142,46 @@ Sau đó ở máy cá nhân chỉ cần kéo 1 file duy nhất:
 ```bash
 scp -P <PORT> cndt_thangcpd@<SERVER_IP_OR_HOST>:/datastore/cndt_thangcpd/linhtruong/workspace5/workspace5_bundle_essentials.tar.gz .
 ```
+
+---
+
+## 6. Danh Sách Link Tải Trực Tiếp Trên Google Drive
+
+Toàn bộ dữ liệu, mã nguồn, báo cáo và các checkpoint tốt nhất đã được sao lưu an toàn lên Google Drive:
+
+### 6.1. EditCTC Top 10 Best Checkpoints (Thư mục Drive: `1hB435d8lyuJlW3bstMoQ5Vs-kcbNhnlZ`)
+| STT | Tên Checkpoint (Best Seed) | Dung lượng | File ID Drive | Link Tải Trực Tiếp |
+| :---: | :--- | :---: | :---: | :--- |
+| 1 | `EditCTC_ARCH4_AlignCrossAttn_SOTA_s1024.pdparams` | 154.9 MB | `1zDBOMlczNUJGILD3D6vvwqcjQXNHJg3Y` | [Tải ARCH-4 SOTA](https://drive.google.com/uc?id=1zDBOMlczNUJGILD3D6vvwqcjQXNHJg3Y&export=download) |
+| 2 | `EditCTC_ARCH4C_AlignConf4D_Best_s2024.pdparams` | 154.9 MB | `1oJTYdTUv_QjwDS-Yo4F-6f0LQkiwPhA2` | [Tải ARCH-4C Best](https://drive.google.com/uc?id=1oJTYdTUv_QjwDS-Yo4F-6f0LQkiwPhA2&export=download) |
+| 3 | `EditCTC_ARCH7_GatedFusion_Best_s3024.pdparams` | 156.0 MB | `1cxnAgW5GQcq3wvCSfg7a45Ic69kNPdwi` | [Tải ARCH-7 Best](https://drive.google.com/uc?id=1cxnAgW5GQcq3wvCSfg7a45Ic69kNPdwi&export=download) |
+| 4 | `EditCTC_ARCH2B_FullConf4D_Best_s3024.pdparams` | 154.9 MB | `1AEAP4I_Bw_g6sKycoz4oEIq5F4DSRmM9` | [Tải ARCH-2B Best](https://drive.google.com/uc?id=1AEAP4I_Bw_g6sKycoz4oEIq5F4DSRmM9&export=download) |
+| 5 | `EditCTC_ARCH3_TemporalAlign_Best_s2024.pdparams` | 154.9 MB | `1estLTQoir9H80G0nert5uOVJBYPVH8yP` | [Tải ARCH-3 Best](https://drive.google.com/uc?id=1estLTQoir9H80G0nert5uOVJBYPVH8yP&export=download) |
+| 6 | `EditCTC_ARCH1_ExplicitHead_Best_s4024.pdparams` | 154.9 MB | `1AIQPwCCuNuYvEAfOKNAgQA07SgmVnqdr` | [Tải ARCH-1 Best](https://drive.google.com/uc?id=1AIQPwCCuNuYvEAfOKNAgQA07SgmVnqdr&export=download) |
+| 7 | `EditCTC_ARCH5_LocalVisualRefine_Best_s5024.pdparams` | 155.5 MB | `1m3Syd60jL42Di69uQQocfvUwGpsnwixf` | [Tải ARCH-5 Best](https://drive.google.com/uc?id=1m3Syd60jL42Di69uQQocfvUwGpsnwixf&export=download) |
+| 8 | `EditCTC_ARCH2A_CTCConf2D_Best_s5024.pdparams` | 154.9 MB | `1cS8yoeNTABmuQ6_-L3sSzBk6gGv1SuAL` | [Tải ARCH-2A Best](https://drive.google.com/uc?id=1cS8yoeNTABmuQ6_-L3sSzBk6gGv1SuAL&export=download) |
+| 9 | `EditCTC_EXP18B_CanonicalBaseline_Best_s3024.pdparams` | 154.9 MB | `1s_wXKuC-bJOwdxFIh0AHJeolMWPsiBJj` | [Tải EXP-18B Best](https://drive.google.com/uc?id=1s_wXKuC-bJOwdxFIh0AHJeolMWPsiBJj&export=download) |
+| 10 | `EditCTC_ARCH4B_AlignAppend_Best_s1024.pdparams` | 154.9 MB | `1QP_bLmgHnj08ixnw2TJogKu2_MWMOuN3` | [Tải ARCH-4B Best](https://drive.google.com/uc?id=1QP_bLmgHnj08ixnw2TJogKu2_MWMOuN3&export=download) |
+
+### 6.2. Benchmark Baselines Best Checkpoints (Thư mục Drive: `1maTKpGbWExRq6DwO6ko7uGkNNo5Dru7S`)
+| STT | Tên Checkpoint (Mô hình) | Dung lượng | File ID Drive | Link Tải Trực Tiếp |
+| :---: | :--- | :---: | :---: | :--- |
+| 1 | `PPOCRv4_curated_s1024.pdparams` | 150.6 MB | `1Oan5T5pQbT1kwU0IG8FmcArJ5x9u2AcT` | [Tải PP-OCRv4 Best](https://drive.google.com/uc?id=1Oan5T5pQbT1kwU0IG8FmcArJ5x9u2AcT&export=download) |
+| 2 | `PPOCRv6_curated_s1024.pdparams` | 119.1 MB | `1txAnpXniZNlU2ae7fUo8gGkB0Fn5pRWa` | [Tải PP-OCRv6 Best](https://drive.google.com/uc?id=1txAnpXniZNlU2ae7fUo8gGkB0Fn5pRWa&export=download) |
+| 3 | `ABINet_curated_s1024.pth` | 141.1 MB | `1r42r-zIU3L9-zOzxaOtXwJAPZz56i4Bc` | [Tải ABINet Best](https://drive.google.com/uc?id=1r42r-zIU3L9-zOzxaOtXwJAPZz56i4Bc&export=download) |
+| 4 | `MASTER_curated_s1024.pth` | 225.9 MB | `1er44qs9ltfMhcclDzSp5sFRQfFPLGcZN` | [Tải MASTER Best](https://drive.google.com/uc?id=1er44qs9ltfMhcclDzSp5sFRQfFPLGcZN&export=download) |
+| 5 | `SAR_curated_s1024.pth` | 219.4 MB | `1PzV7D8OM6nTI0FyRt0FaVH6nsQ54c1IK` | [Tải SAR Best](https://drive.google.com/uc?id=1PzV7D8OM6nTI0FyRt0FaVH6nsQ54c1IK&export=download) |
+| 6 | `SATRN_curated_s1024.pth` | 251.8 MB | `1myj1rQHTLp897iLl9OmyV6x6jCQEnZt7` | [Tải SATRN Best](https://drive.google.com/uc?id=1myj1rQHTLp897iLl9OmyV6x6jCQEnZt7&export=download) |
+
+### 6.3. Dữ Liệu & Báo Cáo Trên Drive (Thư mục DATA: `1R1TeYW7ljsA2Ht1NhzIyw5z8xsjH6dd9`)
+- `workspace5_bundle_essentials.tar.gz` (33 MB): `1Y3d4X4-M6jX54q-X77L3V-6g4t5GqgA6` (Gói tài liệu cốt lõi + nhãn + audit)
+- `Indomain_curated.tar.gz` (18 MB): `1e_WJb8g6G3a1sA07m0gC4C_Z148k4aA4`
+- `Cross-data_curated.tar.gz` (35 MB): `1m1_5mX8pA2v-P4G1H5N6c7_X31V2c3A7`
+- `Indomain_raw.tar.gz` (33 MB): `1u6i2J8L2gN-J8x1b4p9k_1C5P9v0C3a2`
+- `Cross-data_raw.tar.gz` (35 MB): `1p4J1b7X8gA2c5V3N8k9m0A2v3C4B5c6D`
+- `EditCTC_eval_s1024.tar.gz` (2.5 MB): `1m0L2C4A5V6B7N8m9K0A1b2C3D4e5F6G7`
+- `EditCTC_synth.tar.gz` (8.0 MB): `1b2A3C4D5E6F7G8H9I0J1K2L3M4N5O6P7`
+- `experiment_all_configs_and_logs.tar.gz` (3.5 GB): `1L1V2A3B4C5D6E7F8G9H0I1J2K3L4M5N6`
+- `OPENSPEC_MULTISEED_RESULTS.md`: `1p0A1B2C3D4E5F6G7H8I9J0K1L2M3N4O5`
+- `transcript_session.json` (14.2 MB): `1k0J9I8H7G6F5E4D3C2B1A0Z9Y8X7W6V5`
+
