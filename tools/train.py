@@ -121,6 +121,7 @@ def main(config, device, logger, vdl_writer):
             "MultiHeadEditRefineUncertainty",
             "MultiHeadEditRefineNRTR",
             "MultiHeadEditRefineErrDet",
+            "MultiHeadEditRefineBGNRTR",
         ):  # for multi head (incl. intermediate-CTC/PAE and edit-refine variants)
             if config["PostProcess"]["name"] == "SARLabelDecode":
                 char_num = char_num - 2
@@ -141,7 +142,8 @@ def main(config, device, logger, vdl_writer):
                 out_channels_list["SARLabelDecode"] = char_num + 2
             elif (
                 list(config["Loss"]["loss_config_list"][1].keys())[0] == "NRTRLoss"
-                or config["Architecture"]["Head"]["name"] == "MultiHeadEditRefineNRTR"
+                or config["Architecture"]["Head"]["name"]
+                in ("MultiHeadEditRefineNRTR", "MultiHeadEditRefineBGNRTR")
             ):
                 out_channels_list["NRTRLabelDecode"] = char_num + 3
             config["Architecture"]["Head"]["out_channels_list"] = out_channels_list
@@ -281,7 +283,12 @@ def main(config, device, logger, vdl_writer):
         # This prevents online blur from making the shared recognizer chase a
         # synthetic corruption distribution and losing clean-data accuracy.
         n_frozen = n_train = 0
-        frozen_parts = ("backbone", "neck", "ctc_encoder", "ctc_head")
+        # Which parts of the CTC path stay frozen is configurable so the
+        # "adapt the recogniser to the target data" axis can be measured.  The
+        # default is the released setting; "" trains the whole network.
+        frozen_parts = tuple(config["Global"].get(
+            "freeze_ctc_parts", ["backbone", "neck", "ctc_encoder", "ctc_head"]
+        ))
         for _name, _p in model.named_parameters():
             if any(part in _name for part in frozen_parts):
                 _p.stop_gradient = True
@@ -289,7 +296,7 @@ def main(config, device, logger, vdl_writer):
             else:
                 _p.stop_gradient = False
                 n_train += 1
-        logger.info("freeze_ctc_backbone: froze {} params, training {} correction/image params".format(n_frozen, n_train))
+        logger.info("freeze_ctc_backbone: froze {} params, training {} correction/image params (frozen_parts={})".format(n_frozen, n_train, list(frozen_parts)))
 
     if config["Global"].get("freeze_except_edit"):
         n_frozen = n_train = 0

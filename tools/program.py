@@ -41,7 +41,10 @@ from ppocr.data import build_dataloader
 from ppocr.utils.export_model import export
 
 
-def keep_frozen_ctc_batchnorm_eval(model):
+FROZEN_CTC_PARTS = ("backbone", "neck", "ctc_encoder", "ctc_head")
+
+
+def keep_frozen_ctc_batchnorm_eval(model, frozen_parts=None):
     """Keep BatchNorm state fixed for a frozen CTC/backbone path.
 
     ``stop_gradient`` prevents parameter updates but does not prevent
@@ -55,7 +58,8 @@ def keep_frozen_ctc_batchnorm_eval(model):
     Only BatchNorm layers belonging to the frozen CTC path are switched to
     eval mode.  The correction/editor layers remain in training mode.
     """
-    frozen_parts = ("backbone", "neck", "ctc_encoder", "ctc_head")
+    if frozen_parts is None:
+        frozen_parts = FROZEN_CTC_PARTS
     try:
         from paddle.nn.layer.norm import _BatchNormBase
     except ImportError:  # pragma: no cover - defensive for Paddle variants
@@ -367,7 +371,11 @@ def train(
                 # ``model.train()`` recursively re-enables frozen BatchNorm
                 # layers.  Re-apply eval mode before the forward pass so
                 # running statistics cannot drift on correction augmentations.
-                keep_frozen_ctc_batchnorm_eval(model)
+                keep_frozen_ctc_batchnorm_eval(
+                    model,
+                    tuple(config["Global"].get(
+                        "freeze_ctc_parts", FROZEN_CTC_PARTS)),
+                )
             profiler.add_profiler_step(profiler_options)
             train_reader_cost += time.time() - reader_start
             if idx >= max_iter:
@@ -993,6 +1001,10 @@ def preprocess(is_train=False):
         "PP-FormulaNet_plus-L",
     ]
 
+    def _parallel_device_id():
+        env = dist.ParallelEnv()
+        return getattr(env, "dev_id", getattr(env, "device_id", 0))
+
     if use_xpu:
         device = "xpu:{0}".format(os.getenv("FLAGS_selected_xpus", 0))
     elif use_npu:
@@ -1002,11 +1014,11 @@ def preprocess(is_train=False):
     elif use_gcu:  # Use Enflame GCU(General Compute Unit)
         device = "gcu:{0}".format(os.getenv("FLAGS_selected_gcus", 0))
     elif use_metax_gpu:  # Use Enflame GCU(General Compute Unit)
-        device = "metax:{0}".format(dist.ParallelEnv().dev_id)
+        device = "metax:{0}".format(_parallel_device_id())
     elif use_iluvatar_gpu:
-        device = "iluvatar_gpu:{0}".format(dist.ParallelEnv().dev_id)
+        device = "iluvatar_gpu:{0}".format(_parallel_device_id())
     else:
-        device = "gpu:{}".format(dist.ParallelEnv().dev_id) if use_gpu else "cpu"
+        device = "gpu:{}".format(_parallel_device_id()) if use_gpu else "cpu"
     check_device(
         use_gpu, use_xpu, use_npu, use_mlu, use_gcu, use_iluvatar_gpu, use_metax_gpu
     )

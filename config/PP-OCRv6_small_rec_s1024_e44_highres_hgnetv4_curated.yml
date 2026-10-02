@@ -1,0 +1,174 @@
+Global:
+  seed: 1024
+  model_name: PP-OCRv6_small_rec
+  debug: false
+  use_gpu: true
+  epoch_num: 50
+  log_smooth_window: 20
+  print_batch_step: 10
+  save_model_dir: /datastore/cndt_thangcpd/linhtruong/workspace5/Data/EditCTC_arbor_runs/curated_runs/e44_highres_hgnetv4_curated
+  save_epoch_step: 1
+  eval_batch_step: [0, 200]
+  cal_metric_during_train: true
+  calc_epoch_interval: 1
+  # Backbone swap: PP-OCRv4 server recognizer uses PPHGNet_small (SVTR_HGNet),
+  # a different family from the PPLCNetV4-small the seed normally runs on.
+  # Init is the official PP-OCRv4 server checkpoint (zero-shot, has not seen
+  # Indomain_curated), so this run is directly comparable to scratch_v6.
+  pretrained_model: /datastore/cndt_thangcpd/linhtruong/workspace5/workdir_text_rec/PPOCRv4/checkpoints/ppocrv4_server_official_pretrained
+  freeze_ctc_backbone: false
+  character_dict_path: ppocr/utils/dict/ppocrv6_dict.txt
+  max_text_length: &max_text_length 25
+  infer_mode: false
+  use_space_char: true
+  distributed: false
+  d2s_train_image_shape: [3, 48, 320]
+
+Optimizer:
+  name: Adam
+  beta1: 0.9
+  beta2: 0.999
+  lr:
+    name: Cosine
+    learning_rate: 0.0005
+    warmup_epoch: 5
+  regularizer:
+    name: L2
+    factor: 1.0e-04
+
+Architecture:
+  model_type: rec
+  algorithm: SVTR_LCNet
+  Backbone:
+    # PP-OCRv4 server backbone.  Ported into this tree (backbones/rec_hgnet.py)
+    # with the recon_feat capture that use_highres_visual requires.
+    name: PPHGNet_small
+  Head:
+    name: MultiHeadEditRefineNRTR
+    edit_mode: token_refine
+    use_highres_visual: true
+    # PPHGNet_small stage4 outputs 1024 channels; its recon_feat map at the
+    # 48x320 input is [B, 1024, 3, 80] (heights 2/3/4 for the 32/48/64 scales).
+    visual_in_channels: 1024
+    visual_pos_max_height: 4
+    visual_pos_max_width: 80
+    visual_encoder_layers: 1
+    visual_encoder_heads: 8
+    visual_encoder_dropout: 0.10
+    train_seed_corrupt_prob: 0.70
+    edit_gate_threshold: 0.50
+    edit_delta_threshold: 0.05
+    edit_ops_enabled: true
+    edit_op_threshold: 0.50
+    edit_op_delta: 0.05
+    use_length_head: true
+    length_max: 25
+    length_hidden: 128
+    nrtr_dim: 384
+    nrtr_layers: 4
+    edit_dropout: 0.2
+    edit_head_dropout: 0.2
+    head_list:
+      - CTCHead:
+          Neck:
+            name: lightsvtr
+            dims: 120
+            depth: 2
+            mlp_ratio: 2.0
+            local_kernel: 7
+          Head:
+            fc_decay: 0.00001
+      - NRTRHead:
+          nrtr_dim: 384
+          max_text_length: *max_text_length
+
+Loss:
+  name: MultiLossEditRefineToken
+  weight_length: 0.1
+  weight_edit: 1.0
+  weight_op: 0.5
+  op_class_weights: [1.0, 2.0, 4.0, 4.0]
+  weight_append: 0.0
+  gate_pos_weight: 4.0
+  gate_percentile: 0.10
+  gate_mode: random
+  length_max: 25
+  loss_config_list:
+    - CTCLoss:
+    - LengthLoss:
+
+PostProcess:
+  name: CTCLabelDecode
+
+Metric:
+  name: RecMetric
+  main_indicator: acc
+
+Train:
+  dataset:
+    name: MultiScaleDataSet
+    ds_width: false
+    data_dir: /datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain_curated/crops/train
+    ext_op_transform_idx: 1
+    label_file_list:
+      - /datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain_curated/crops/train_label.txt
+    transforms:
+      - DecodeImage:
+          img_mode: BGR
+          channel_first: false
+      - RecAug:
+          tia_prob: 0.20
+          crop_prob: 0.20
+          reverse_prob: 0.0
+          noise_prob: 0.20
+          jitter_prob: 0.20
+          blur_prob: 0.10
+          hsv_aug_prob: 0.20
+      - MultiLabelEncode:
+          gtc_encode: NRTRLabelEncode
+      - KeepKeys:
+          keep_keys:
+            - image
+            - label_ctc
+            - label_gtc
+            - length
+            - valid_ratio
+  sampler:
+    name: MultiScaleSampler
+    scales: [[320, 32], [320, 48], [320, 64]]
+    first_bs: &bs 64
+    fix_bs: true
+    divided_factor: [8, 16]
+    is_training: true
+  loader:
+    shuffle: true
+    batch_size_per_card: *bs
+    drop_last: true
+    num_workers: 8
+
+Eval:
+  dataset:
+    name: SimpleDataSet
+    data_dir: /datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain_curated/crops/valid
+    label_file_list:
+      - /datastore/cndt_thangcpd/linhtruong/workspace5/Data/Indomain_curated/crops/valid_label.txt
+    transforms:
+      - DecodeImage:
+          img_mode: BGR
+          channel_first: false
+      - MultiLabelEncode:
+          gtc_encode: NRTRLabelEncode
+      - RecResizeImg:
+          image_shape: [3, 48, 320]
+      - KeepKeys:
+          keep_keys:
+            - image
+            - label_ctc
+            - label_gtc
+            - length
+            - valid_ratio
+  loader:
+    shuffle: false
+    drop_last: false
+    batch_size_per_card: 128
+    num_workers: 4

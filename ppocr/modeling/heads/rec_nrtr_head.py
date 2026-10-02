@@ -362,26 +362,47 @@ class Transformer(nn.Layer):
         return mask.unsqueeze([0, 1])
 
 
+class StarReLU(nn.Layer):
+    """
+    StarReLU: s * relu(x) ** 2 + b
+    Reference: MetaFormer (https://arxiv.org/abs/2210.13452)
+    """
+    def __init__(self, scale_value=1.0, bias_value=0.0,
+                 scale_learnable=True, bias_learnable=True, 
+                 inplace=False):
+        super().__init__()
+        self.inplace = inplace
+        self.relu = nn.ReLU()
+        self.scale = self.create_parameter(
+            shape=[1],
+            dtype='float32',
+            default_initializer=nn.initializer.Constant(scale_value),
+            is_bias=False
+        )
+        self.scale.stop_gradient = not scale_learnable
+        self.bias = self.create_parameter(
+            shape=[1],
+            dtype='float32',
+            default_initializer=nn.initializer.Constant(bias_value),
+            is_bias=True
+        )
+        self.bias.stop_gradient = not bias_learnable
+
+    def forward(self, x):
+        return self.scale * (self.relu(x) ** 2) + self.bias
+
+
 class MultiheadAttention(nn.Layer):
     """Allows the model to jointly attend to information
     from different representation subspaces.
     See reference: Attention Is All You Need
-
-    .. math::
-        \text{MultiHead}(Q, K, V) = \text{Concat}(head_1,\dots,head_h)W^O
-        \text{where} head_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)
-
-    Args:
-        embed_dim: total dimension of the model
-        num_heads: parallel attention layers, or heads
-
     """
 
-    def __init__(self, embed_dim, num_heads, dropout=0.0, self_attn=False):
+    def __init__(self, embed_dim, num_heads, dropout=0.0, self_attn=False, drop_key_rate=0.0):
         super(MultiheadAttention, self).__init__()
         self.embed_dim = embed_dim
         self.num_heads = num_heads
-        # self.dropout = dropout
+        self.drop_key_rate = drop_key_rate
         self.head_dim = embed_dim // num_heads
         assert (
             self.head_dim * num_heads == self.embed_dim
@@ -422,6 +443,12 @@ class MultiheadAttention(nn.Layer):
 
         attn = (q.matmul(k.transpose((0, 1, 3, 2)))) * self.scale
 
+        if self.training and self.drop_key_rate > 0.0 and not self.self_attn:
+            # DropKey on cross-attention to prevent peak over-concentration
+            key_keep = paddle.cast(paddle.rand(attn.shape[:1] + [1, 1, attn.shape[-1]]) >= self.drop_key_rate, attn.dtype)
+            key_mask = (1.0 - key_keep) * -1e9
+            attn = attn + key_mask
+
         if attn_mask is not None:
             attn += attn_mask
 
@@ -445,6 +472,8 @@ class TransformerBlock(nn.Layer):
         with_self_attn=True,
         with_cross_attn=False,
         epsilon=1e-5,
+        act_type="ReLU",
+        drop_key_rate=0.0,
     ):
         super(TransformerBlock, self).__init__()
         self.with_self_attn = with_self_attn
@@ -457,17 +486,18 @@ class TransformerBlock(nn.Layer):
         self.with_cross_attn = with_cross_attn
         if with_cross_attn:
             self.cross_attn = (
-                MultiheadAttention(  # for self_attn of encoder or cross_attn of decoder
-                    d_model, nhead, dropout=attention_dropout_rate
+                MultiheadAttention(
+                    d_model, nhead, dropout=attention_dropout_rate, drop_key_rate=drop_key_rate
                 )
             )
             self.norm2 = LayerNorm(d_model, epsilon=epsilon)
             self.dropout2 = Dropout(residual_dropout_rate)
 
+        act_layer = StarReLU if act_type == "StarReLU" else nn.ReLU
         self.mlp = Mlp(
             in_features=d_model,
             hidden_features=dim_feedforward,
-            act_layer=nn.ReLU,
+            act_layer=act_layer,
             drop=residual_dropout_rate,
         )
 

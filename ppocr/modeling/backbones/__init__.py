@@ -25,9 +25,14 @@ __all__ = ["build_backbone"]
 def build_backbone(config, model_type):
     if model_type == "rec" or model_type == "cls":
         from .rec_lcnetv4 import PPLCNetV4
+        from .rec_hgnet import PPHGNet_small
 
         support_dict = [
             "PPLCNetV4",
+            # PP-OCRv4 server recognizer backbone, ported so the EditCTC head
+            # can be trained on top of it.  Sets backbone.recon_feat like
+            # PPLCNetV4 does, which use_highres_visual requires.
+            "PPHGNet_small",
         ]
     else:
         raise NotImplementedError(

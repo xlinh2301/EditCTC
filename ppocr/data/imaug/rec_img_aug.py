@@ -68,6 +68,127 @@ class RecAug(object):
         return data
 
 
+class RightClipAug(object):
+    """Cut a small fraction off the right edge during training (online).
+
+    This manufactures the failure the append head has to repair: the frozen
+    CTC seed drops the trailing character while the ground truth keeps it.
+    The cut is deliberately narrow (a fraction of one character) so the
+    trailing glyph stays partly visible in the high-resolution visual memory
+    and the ground-truth tail stays justified instead of becoming a
+    hallucination target.
+    """
+
+    def __init__(
+        self,
+        prob=0.35,
+        min_frac=0.05,
+        max_frac=0.12,
+        min_keep=0.4,
+        **kwargs,
+    ):
+        self.prob = float(prob)
+        self.min_frac = float(min_frac)
+        self.max_frac = float(max_frac)
+        self.min_keep = float(min_keep)
+
+    def __call__(self, data):
+        if random.random() > self.prob:
+            return data
+        img = data["image"]
+        w = img.shape[1]
+        frac = random.uniform(self.min_frac, self.max_frac)
+        new_w = int(round(w * (1.0 - frac)))
+        if new_w >= w or new_w < max(1, int(w * self.min_keep)):
+            return data
+        data["image"] = img[:, :new_w, :]
+        return data
+
+
+
+class RightEdgeMaskAug(object):
+    """Mask or occlude the right edge of the image during training.
+
+    Can randomly do:
+    - Zero/black mask on rightmost frac (e.g. 5% - 20%)
+    - Mean color on rightmost frac
+    - Noise on rightmost frac
+    - Edge Gaussian blur on rightmost frac
+    This forces the model to attend to right-edge features robustly without
+    getting distracted by partial noise or hallucinating false endings.
+    """
+
+    def __init__(
+        self,
+        prob=0.5,
+        min_frac=0.05,
+        max_frac=0.20,
+        mode="random",
+        **kwargs,
+    ):
+        self.prob = float(prob)
+        self.min_frac = float(min_frac)
+        self.max_frac = float(max_frac)
+        self.mode = mode
+
+    def __call__(self, data):
+        if random.random() > self.prob:
+            return data
+        img = data["image"]
+        h, w, c = img.shape
+        frac = random.uniform(self.min_frac, self.max_frac)
+        mask_w = int(round(w * frac))
+        if mask_w <= 0 or mask_w >= w:
+            return data
+
+        start_x = w - mask_w
+        chosen_mode = self.mode
+        if chosen_mode == "random":
+            chosen_mode = random.choice(["black", "noise", "blur", "mean"])
+
+        img = img.copy()
+        if chosen_mode == "black":
+            img[:, start_x:, :] = 0
+        elif chosen_mode == "mean":
+            mean_val = img[:, :start_x, :].mean(axis=(0, 1))
+            img[:, start_x:, :] = mean_val
+        elif chosen_mode == "noise":
+            noise = np.random.randint(0, 256, (h, mask_w, c), dtype=np.uint8)
+            img[:, start_x:, :] = noise
+        elif chosen_mode == "blur":
+            k = max(3, (mask_w // 2) * 2 + 1)
+            img[:, start_x:, :] = cv2.GaussianBlur(img[:, start_x:, :], (k, k), 0)
+
+        data["image"] = img
+        return data
+
+
+class DigitContrastEnhanceAug(object):
+    """Enhance character strokes with CLAHE or unsharp masking.
+
+    Resolves stroke confusion between 3<->5, 7<->1, 8<->0 under blur/dust.
+    """
+
+    def __init__(self, prob=0.4, clip_limit=2.0, **kwargs):
+        self.prob = float(prob)
+        self.clip_limit = float(clip_limit)
+
+    def __call__(self, data):
+        if random.random() > self.prob:
+            return data
+        img = data["image"]
+        try:
+            clahe = cv2.createCLAHE(clipLimit=self.clip_limit, tileGridSize=(4, 8))
+            lab = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+            l, a, b = cv2.split(lab)
+            l2 = clahe.apply(l)
+            lab = cv2.merge((l2, a, b))
+            data["image"] = cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
+        except Exception:
+            pass
+        return data
+
+
 class CTCSpanBlurAug(object):
     """Blur one CTC-collapsed character span during training.
 

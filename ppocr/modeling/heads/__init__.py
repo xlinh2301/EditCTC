@@ -22,12 +22,19 @@ __all__ = ["build_head"]
 
 
 def build_head(config):
+    from .rec_multi_head import MultiHead
     from .rec_edit_refine_head_uncertainty import MultiHeadEditRefineUncertainty
     from .rec_edit_refine_nrtr_head import MultiHeadEditRefineNRTR
+    # BG-NERD redesign: boundary-gap queries (G0 T0 G1 ... Tn-1 Gn) with a
+    # bidirectional edit decoder, so a missing final character is a first-class
+    # gap action instead of an untrained append special case.
+    from .bg_nerd_all_in_one import MultiHeadEditRefineBGNRTR
 
     support_dict = [
+        "MultiHead",
         "MultiHeadEditRefineUncertainty",
         "MultiHeadEditRefineNRTR",
+        "MultiHeadEditRefineBGNRTR",
     ]
 
     module_name = config.pop("name")

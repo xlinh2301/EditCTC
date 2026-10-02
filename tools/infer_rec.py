@@ -58,6 +58,139 @@ def _softmax_np(logits):
     return probs / probs.sum(axis=-1, keepdims=True)
 
 
+def _write_bg_branch_debug(log_file, file_path, debug, ctc_decoder, final):
+    """Write a per-image audit record for the BG boundary-gap head.
+
+    The BG head emits its own debug keys (bg_*), so it cannot share the NERD
+    writer below: that one is written against the older head's edit_op_logits
+    schema.  Dispatch on key presence instead of on a flag, so neither head
+    can silently read the other's record.
+
+    The point of this record is to separate "the count head predicts no
+    insert" from "the count head predicts an insert and a gate blocks it".
+    Every gate input is written raw, next to the threshold it is compared
+    with, so the verdict is readable without re-running the model.
+    """
+    ctc_probs = np.asarray(debug["ctc_probs"])
+    ctc_ids = ctc_probs.argmax(axis=2)
+    ctc_conf = ctc_probs.max(axis=2)
+    ctc_result = ctc_decoder.decode(ctc_ids, ctc_conf, is_remove_duplicate=True)[0]
+
+    thresholds = debug.get("bg_thresholds", {})
+    gap_thr = thresholds.get("gap_threshold")
+    gap_delta_thr = thresholds.get("gap_delta")
+    gap_char_thr = thresholds.get("gap_char_threshold")
+    op_thr = thresholds.get("token_op_threshold")
+
+    seed_lens = int(np.asarray(debug["seed_lens"])[0])
+    seed_ids = np.asarray(debug["seed_ids"])[0, :seed_lens]
+    refined_ids = list(debug["refined_ids"][0])
+    seed_result = _decode_id_sequence(ctc_decoder, seed_ids)
+    refined_result = _decode_id_sequence(ctc_decoder, refined_ids)
+
+    def char_at(idx):
+        idx = int(idx)
+        return "" if idx == 0 else ctc_decoder.character[idx]
+
+    # ---- gaps ----
+    count_logits = np.asarray(debug["bg_gap_count_logits"])[0]
+    count_probs = _softmax_np(count_logits)
+    count_arg = count_probs.argmax(axis=-1)
+    gated_counts = np.asarray(debug["bg_gap_counts"])[0]
+    gap_char_logits = np.asarray(debug["bg_gap_char_logits"])[0]
+
+    gaps = []
+
+    # seed_lens + 1 gaps: one before each seed token and one after the last.
+    for pos in range(seed_lens + 1):
+        probs = count_probs[pos]
+        arg = int(count_arg[pos])
+        best = float(probs[arg])
+        p_zero = float(probs[0])
+        gap_valid = bool(np.asarray(debug["gap_valid"])[0, pos] > 0.5)
+
+        slot_probs = []
+        for k in range(gap_char_logits.shape[1]):
+            lp = _softmax_np(gap_char_logits[pos, k])
+            slot_probs.append(float(lp.max()))
+
+        blocked = None
+        if arg != 0:
+            if not gap_valid:
+                blocked = "gap_invalid"
+            elif gap_thr is not None and best < gap_thr:
+                blocked = "below_gap_threshold"
+            elif gap_delta_thr is not None and (best - p_zero) < gap_delta_thr:
+                blocked = "below_gap_delta"
+            elif gap_char_thr is not None and min(slot_probs[:arg]) < gap_char_thr:
+                blocked = "below_gap_char_threshold"
+
+        gaps.append(
+            {
+                "position": pos,
+                "count_argmax": arg,
+                "count_probability": best,
+                "count_probability_zero": p_zero,
+                "count_margin_over_zero": best - p_zero,
+                "count_probabilities": [float(p) for p in probs],
+                "gap_valid": gap_valid,
+                "slot_max_probabilities": slot_probs,
+                "emitted_count": int(gated_counts[pos]),
+                "blocked_by": blocked,
+                "chars": [char_at(c) for c in np.asarray(debug["bg_gap_chars"])[0, pos]],
+            }
+        )
+
+    # ---- token ops ----
+    op_logits = np.asarray(debug["bg_token_op_logits"])[0, :seed_lens]
+    op_probs = _softmax_np(op_logits) if seed_lens else np.empty((0, 3))
+    op_ids = np.asarray(debug["bg_token_ops"])[0, :seed_lens]
+    tok_ids = np.asarray(debug["bg_token_chars"])[0, :seed_lens]
+    op_names = ["KEEP", "REPLACE", "DELETE"]
+
+    operations = []
+    for pos in range(seed_lens):
+        op_id = int(op_ids[pos])
+        operations.append(
+            {
+                "position": pos,
+                "operation": op_names[op_id],
+                "operation_probability": float(op_probs[pos, op_id]),
+                "keep_probability": float(op_probs[pos, 0]),
+                "argmax_operation": op_names[int(op_probs[pos].argmax())],
+                "argmax_probability": float(op_probs[pos].max()),
+                "seed_token": char_at(seed_ids[pos]),
+                "predicted_token": char_at(tok_ids[pos]),
+            }
+        )
+
+    final_text = final[0] if isinstance(final, (list, tuple)) and final else ""
+    final_conf = (
+        float(final[1])
+        if isinstance(final, (list, tuple)) and len(final) > 1
+        else None
+    )
+
+    record = {
+        "file": file_path,
+        "head": "bg",
+        "ctc": {"text": ctc_result[0], "confidence": float(ctc_result[1])},
+        "bg": {
+            "thresholds": thresholds,
+            "seed_text": seed_result[0],
+            "seed_length": seed_lens,
+            "refined_text": refined_result[0],
+            "refined_length": len(refined_result[0]),
+            "gaps": gaps,
+            "operations": operations,
+        },
+        "final": {"text": final_text, "confidence": final_conf},
+    }
+    json.dump(record, log_file, ensure_ascii=False)
+    log_file.write("\n")
+    log_file.flush()
+
+
 def _write_branch_debug(log_file, file_path, debug, ctc_decoder, nrtr_decoder, final):
     """Write a per-image branch audit record.
 
@@ -65,6 +198,11 @@ def _write_branch_debug(log_file, file_path, debug, ctc_decoder, nrtr_decoder, f
     own, so it is decoded through NRTRLabelDecode.  All arrays are reduced to
     JSON scalars/lists here, keeping the model output unchanged for callers.
     """
+    if "bg_gap_count_logits" in debug:
+        return _write_bg_branch_debug(
+            log_file, file_path, debug, ctc_decoder, final
+        )
+
     ctc_probs = np.asarray(debug["ctc_probs"])
     ctc_ids = ctc_probs.argmax(axis=2)
     ctc_conf = ctc_probs.max(axis=2)
@@ -227,6 +365,7 @@ def main():
             "MultiHeadEditRefine",
             "MultiHeadEditRefineUncertainty",
             "MultiHeadEditRefineNRTR",
+            "MultiHeadEditRefineBGNRTR",
         ]:  # multi head, including EditCTC custom heads
             out_channels_list = {}
             char_num = len(getattr(post_process_class, "character"))

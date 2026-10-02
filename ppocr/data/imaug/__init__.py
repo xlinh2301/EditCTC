@@ -15,7 +15,8 @@
 # TRIMMED for EditCTC: create_operators() resolves op class names via
 # eval() in *this module's* namespace, so only the ops actually listed in
 # the 5 configs' Train/Eval transforms need to be importable here:
-#   DecodeImage, RecConAug, RecAug, MultiLabelEncode, RecResizeImg, KeepKeys
+#   DecodeImage, RecConAug, RecAug, RightClipAug, MultiLabelEncode,
+#   RecResizeImg, KeepKeys
 # (NRTRLabelEncode is referenced dynamically too, but only from *inside*
 # label_ops.py's own MultiLabelEncode.__init__ via eval(gtc_encode), which
 # resolves in label_ops.py's module namespace -- it does not need to be
@@ -30,8 +31,16 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from .operators import DecodeImage, KeepKeys
-from .rec_img_aug import CTCSpanBlurAug, RecAug, RecConAug, RecResizeImg
 from .label_ops import MultiLabelEncode
+from .rec_img_aug import (
+    CTCSpanBlurAug,
+    DigitContrastEnhanceAug,
+    RecAug,
+    RecConAug,
+    RecResizeImg,
+    RightClipAug,
+    RightEdgeMaskAug,
+)
 
 
 def transform(data, ops=None):
