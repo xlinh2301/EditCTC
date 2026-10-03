@@ -8,7 +8,7 @@
 ---
 
 ## 1. Context & Motivation (Context Layer)
-Industrial optical character recognition (OCR) of mechanical water meters and industrial dials encounters severe domain shifts, motion blur, and glare. Standard CTC decoders suffer from unconstrained attention scattering. This specification defines the **ARCH-4 (Alignment-Guided Cross-Attention)** and **ARCH-4C (Continuous 4D CTC Uncertainty)** refinement architecture.
+Industrial optical character recognition (OCR) of mechanical water meters and industrial dials encounters severe domain shifts, motion blur, specular glare, and continuous drum transitions (half-digits). Standard CTC decoders suffer from conditional independence and unconstrained attention scattering. This specification defines the **ARCH-4 (Alignment-Guided Cross-Attention)** and **ARCH-4C (Continuous 4D CTC Uncertainty)** refinement architecture.
 
 ---
 
@@ -26,7 +26,7 @@ python tools/eval_rec.py -c config/PP-OCRv6_small_rec_s1024_e44_highres_canonica
    $$\mathbf{B}_{i, k} = \lambda \cdot \exp\left(-\frac{(u_k - c_i)^2}{2\sigma^2}\right)$$
    Where $c_i = t_i / (T-1)$, $u_k = (k \bmod W) / (W-1)$, $\lambda = 4.0$, $\sigma = 0.08$.
 2. **Continuous 4D Uncertainty**:
-   $$\mathbf{c}_i = [p_{top1}, p_{top2}, p_{top1}-p_{top2}, \text{entropy}]$$
+   $$\mathbf{c}_i = [p_{top1}, p_{top2}, p_{top1}-p_{top2}, \mathcal{H}(p)]$$
    $$\mathbf{q}_i = E_{tok}(s_i) + \tanh(\alpha) \cdot \text{MLP}_{64 \to 384}(\mathbf{c}_i)$$
 3. **Decoupled Dual Heads**:
    - Change Head: $\mathcal{L}_{change} = \text{BCEWithLogits}(W_{ch}^T h_i, z_i)$
@@ -37,6 +37,7 @@ python tools/eval_rec.py -c config/PP-OCRv6_small_rec_s1024_e44_highres_canonica
 ## 4. Data Layer (Datasets & Multi-Seed Benchmarks)
 - **In-Domain Test Set**: 585 labeled utility meter displays.
 - **Cross-Data Test Set**: 1,145 challenging out-of-domain outdoor meter displays.
+- **External AMR Datasets**: UFPR-AMR (2,000 images), Multi-Source Meter (3,672 images), CCF Real-World (1,500 images).
 - **Random Seeds**: 5 seeds per architecture (`s1024`, `s2024`, `s3024`, `s4096`, `s8192`).
 
 ---
@@ -54,5 +55,9 @@ python tools/eval_rec.py -c config/PP-OCRv6_small_rec_s1024_e44_highres_canonica
   - [`wiki/patterns/pattern_spatial_alignment_gaussian_bias.md`](file:///mnt/d/workspace/EditCTC/wiki/patterns/pattern_spatial_alignment_gaussian_bias.md)
   - [`wiki/patterns/pattern_continuous_ctc_uncertainty.md`](file:///mnt/d/workspace/EditCTC/wiki/patterns/pattern_continuous_ctc_uncertainty.md)
   - [`wiki/patterns/pattern_decoupled_change_token_heads.md`](file:///mnt/d/workspace/EditCTC/wiki/patterns/pattern_decoupled_change_token_heads.md)
+  - [`wiki/patterns/pattern_half_digit_transition_dynamics.md`](file:///mnt/d/workspace/EditCTC/wiki/patterns/pattern_half_digit_transition_dynamics.md)
+  - [`wiki/patterns/pattern_water_meter_dataset_benchmarks.md`](file:///mnt/d/workspace/EditCTC/wiki/patterns/pattern_water_meter_dataset_benchmarks.md)
+  - [`wiki/patterns/pattern_specular_glare_polarization_filtering.md`](file:///mnt/d/workspace/EditCTC/wiki/patterns/pattern_specular_glare_polarization_filtering.md)
+  - [`wiki/patterns/pattern_hybrid_pointer_counter_fusion.md`](file:///mnt/d/workspace/EditCTC/wiki/patterns/pattern_hybrid_pointer_counter_fusion.md)
 - Historical Impact Tracker:
   - [`wiki/skill-impact.md`](file:///mnt/d/workspace/EditCTC/wiki/skill-impact.md)
