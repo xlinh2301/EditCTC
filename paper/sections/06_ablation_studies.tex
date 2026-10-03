@@ -1,0 +1,8 @@
+\section{Ablation Studies}
+\label{sec:ablations}
+
+\subsection{Impact of Spatial Gaussian Bias Strength ($\lambda$)}
+Varying $\lambda$ from $0.0$ (standard cross-attention) to $6.0$ demonstrates that $\lambda = 4.0$ achieves the optimal balance between spatial localization and contextual flexibility, yielding the highest cross-dataset accuracy ($91.35\%$).
+
+\subsection{Over-Correction Suppression}
+Decoupled Change Head ($\text{ARCH-1}$) suppresses the false edit rate on correctly recognized characters from $4.18\%$ in standard single-head decoders down to $0.08\%$.

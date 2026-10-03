@@ -1,0 +1,11 @@
+\section{Introduction}
+\label{sec:intro}
+Automated optical recognition of mechanical meter displays (e.g., water, gas, and electric meters) is critical for smart city infrastructure and automated utility auditing. Unlike conventional scene text recognition (STR), meter recognition operates under severe physical degradation: specular glass reflections, condensation droplets, oblique viewing angles, and dust accumulation.
+
+Connectionist Temporal Classification (CTC)~\cite{graves2006connectionist} provides real-time inference speeds on edge devices. However, standard CTC models exhibit significant performance collapse under domain shifts. Autoregressive decoders, while expressive, suffer from quadratic latency and error accumulation. Non-autoregressive (NAR) post-editing provides a promising alternative, but naive refinement models suffer from two critical failures:
+\begin{enumerate}
+    \item \textbf{Attention Scattering}: Unconstrained cross-attention fails to bind character queries to specific horizontal visual regions on repetitive digit strings (e.g. \texttt{00000.0}).
+    \item \textbf{Over-Correction Pathology}: Refinement heads inadvertently alter already correct seed tokens, causing severe precision loss.
+\end{enumerate}
+
+To address these challenges, we introduce \textbf{EditCTC}, an alignment-guided non-autoregressive refinement architecture. By translating CTC temporal peaks into continuous 2D spatial Gaussian attention priors ($\text{ARCH-4}$), injecting 4D continuous CTC confidence vectors ($\text{ARCH-4C}$), and decoupling the edit decision from token prediction ($\text{ARCH-1}$), EditCTC achieves unprecedented robustness.

@@ -1,0 +1,20 @@
+\section{System Architecture}
+\label{sec:architecture}
+EditCTC consists of four tightly integrated stages: (1) Visual Backbone, (2) CTC Alignment Head, (3) Alignment-Guided Cross-Attention Decoder, and (4) Decoupled Prediction Heads.
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.9\columnwidth}{\small\centering
+\textbf{PPLCNetV4 Visual Backbone}\\[2pt]
+$\downarrow$\\[2pt]
+\textbf{CTC Head (Emits Seeds $s_i$, Timesteps $t_i$, Conf $\mathbf{c}_i$)}\\[2pt]
+$\downarrow$\\[2pt]
+\textbf{Gaussian Spatial Bias Matrix $\mathbf{B}_{i,k} = \lambda \exp(-\frac{(u_k-c_i)^2}{2\sigma^2})$}\\[2pt]
+$\downarrow$\\[2pt]
+\textbf{4-Layer NRTR Decoder (Align-Guided Cross-Attention)}\\[2pt]
+$\downarrow$\\[2pt]
+\textbf{Decoupled Heads: Change Head $P_{change}$ + Token Head $P_{vocab}$}
+}}
+\caption{The EditCTC Architecture Pipeline with Alignment-Guided Refinement.}
+\label{fig:pipeline}
+\end{figure}

@@ -1,0 +1,8 @@
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Scene Text & Meter Recognition}
+Vision-based text recognition models such as SVTR~\cite{du2022svtr} utilize single-visual Transformers to decompose characters into stroke patches. However, direct CTC recognition on SVTR features remains susceptible to boundary noise and severe character confusion between geometrically similar digits (e.g. $8 \leftrightarrow 9, 3 \leftrightarrow 8, 0 \leftrightarrow 6$).
+
+\subsection{Spec-Driven Autonomous AI & Knowledge Compilation}
+The ARIA framework~\cite{chen2025spec} established the standard for Spec-Driven AI systems, decomposing complex engineering tasks into clean interoperable layers. Furthermore, WikiSkill~\cite{wikiskill2026} demonstrated that maintaining a persistent, compounding three-layer knowledge base (\texttt{raw/}, \texttt{wiki/}, \texttt{skills/}) prevents knowledge fragmentation and accelerates architectural discovery across successive model revisions. We follow these principles in organizing the research and empirical validation of EditCTC.
