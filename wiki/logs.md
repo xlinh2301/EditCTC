@@ -22,3 +22,10 @@ Continuous audit trail of model development, multi-seed training iterations, and
 - **Author**: System Engineer
 - **Action**: Published top-10 checkpoints across all architecture variants to Google Drive and generated `MODEL_ZOO_AND_DATA.md`.
 - **Status**: Ready for production deployment and paper submission.
+
+---
+
+## [2026-10-03 05:25:00Z] Deep Literature Synthesis & Half-Digit Dynamics Analysis
+- **Author**: Autonomous Research Agent (via NotebookLM `7ea6b428-59ae` & `fbaa2c77-6c75`)
+- **Key Discovery**: Investigated rotating mechanical wheel transition dynamics ($3 \leftrightarrow 4, 8 \leftrightarrow 9, 9 \leftrightarrow 0$). Found that standard discrete classifiers fail due to high-entropy states, whereas ARCH-4C's 4D continuous confidence vectors identify transition states and use neighboring wheel visual context to enforce mechanical carry-over consistency.
+- **Artifacts Created**: Added `wiki/related_work.md` (comparative taxonomy vs LevOCR, SVTRv2, PerturbCTC, CRAFT) and `wiki/patterns/pattern_half_digit_transition_dynamics.md`.
