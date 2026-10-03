@@ -52,12 +52,12 @@ python tools/eval_rec.py -c config/PP-OCRv6_small_rec_s1024_e44_highres_canonica
 
 ## 6. AI Capability Module (WikiSkill Persistent Link)
 - Motivating Patterns:
-  - [`wiki/patterns/pattern_spatial_alignment_gaussian_bias.md`](file:///mnt/d/workspace/EditCTC/wiki/patterns/pattern_spatial_alignment_gaussian_bias.md)
-  - [`wiki/patterns/pattern_continuous_ctc_uncertainty.md`](file:///mnt/d/workspace/EditCTC/wiki/patterns/pattern_continuous_ctc_uncertainty.md)
-  - [`wiki/patterns/pattern_decoupled_change_token_heads.md`](file:///mnt/d/workspace/EditCTC/wiki/patterns/pattern_decoupled_change_token_heads.md)
-  - [`wiki/patterns/pattern_half_digit_transition_dynamics.md`](file:///mnt/d/workspace/EditCTC/wiki/patterns/pattern_half_digit_transition_dynamics.md)
-  - [`wiki/patterns/pattern_water_meter_dataset_benchmarks.md`](file:///mnt/d/workspace/EditCTC/wiki/patterns/pattern_water_meter_dataset_benchmarks.md)
-  - [`wiki/patterns/pattern_specular_glare_polarization_filtering.md`](file:///mnt/d/workspace/EditCTC/wiki/patterns/pattern_specular_glare_polarization_filtering.md)
-  - [`wiki/patterns/pattern_hybrid_pointer_counter_fusion.md`](file:///mnt/d/workspace/EditCTC/wiki/patterns/pattern_hybrid_pointer_counter_fusion.md)
+  - [`wiki/patterns/pattern_spatial_alignment_gaussian_bias.md`](file://@/path
+  - [`wiki/patterns/pattern_continuous_ctc_uncertainty.md`](file://@/path
+  - [`wiki/patterns/pattern_decoupled_change_token_heads.md`](file://@/path
+  - [`wiki/patterns/pattern_half_digit_transition_dynamics.md`](file://@/path
+  - [`wiki/patterns/pattern_water_meter_dataset_benchmarks.md`](file://@/path
+  - [`wiki/patterns/pattern_specular_glare_polarization_filtering.md`](file://@/path
+  - [`wiki/patterns/pattern_hybrid_pointer_counter_fusion.md`](file://@/path
 - Historical Impact Tracker:
-  - [`wiki/skill-impact.md`](file:///mnt/d/workspace/EditCTC/wiki/skill-impact.md)
+  - [`wiki/skill-impact.md`](file://@/path
