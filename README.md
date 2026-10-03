@@ -2,9 +2,12 @@
 
 [![PaddlePaddle](https://img.shields.io/badge/PaddlePaddle-3.0.0-blue.svg)](https://www.paddlepaddle.org.cn/)
 [![Benchmark SOTA](https://img.shields.io/badge/Crossdata%20Acc-91.35%25-brightgreen.svg)](OPENSPEC_MULTISEED_RESULTS.md)
+[![Model Zoo](https://img.shields.io/badge/Model%20Zoo-Checkpoints%20%26%20Data-orange.svg)](MODEL_ZOO_AND_DATA.md)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 An industrial-grade, non-autoregressive sequence refinement network that resolves CTC alignment drift, out-of-domain degradation, and character-confusion errors in water-meter digit recognition.
+
+> 🚀 **Quick Links:** [**Model Zoo & Google Drive Downloads (Checkpoints & Datasets)**](MODEL_ZOO_AND_DATA.md) | [**52-Seed Benchmark Results**](OPENSPEC_MULTISEED_RESULTS.md) | [**Visual Error Audit**](visual_error_audit.md) | [**Transfer Manifest**](WORKSPACE5_TRANSFER_MANIFEST.md)
 
 ---
 
