@@ -1,0 +1,30 @@
+\section{Multi-Seed Experimental Evaluation}
+\label{sec:experiments}
+
+\subsection{Benchmark Protocol}
+We benchmark EditCTC across 52 independent training runs with 5 to 6 random seeds per model on two test sets:
+\begin{itemize}
+    \item \textbf{In-Domain Test Set}: 585 annotated meter displays.
+    \item \textbf{Cross-Data Test Set}: 1,145 challenging out-of-domain outdoor meter displays.
+\end{itemize}
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Multi-Seed Benchmark Comparison (52 Seeds Across 8 Architecture Variants).}
+\label{tab:multiseed}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Architecture} & \textbf{Seeds} & \textbf{In-Domain Acc (\%)} & \textbf{In-Domain CER (\%)} & \textbf{Cross-Data Acc (\%)} & \textbf{Cross-Data CER (\%)} & \textbf{Stability ($\sigma$)} \\
+\midrule
+Baseline (EXP-18B) & 6 & 93.30 $\pm$ 0.32 & 2.32 & 88.27 $\pm$ 0.70 & 2.66 & $\pm 0.70\%$ \\
+ARCH-1 (Decoupled Change) & 5 & 92.85 $\pm$ 0.23 & 2.39 & 89.22 $\pm$ 1.23 & 2.44 & $\pm 1.23\%$ \\
+ARCH-2B (4D Confidence) & 5 & 93.03 $\pm$ 0.25 & 2.33 & 89.48 $\pm$ 0.92 & 2.39 & $\pm 0.92\%$ \\
+ARCH-3 (Temporal Align Emb) & 5 & 92.58 $\pm$ 0.59 & 2.45 & 89.61 $\pm$ 1.20 & 2.35 & $\pm 1.20\%$ \\
+\textbf{ARCH-4 (Align-Guided)} & 5 & 93.09 $\pm$ 0.30 & \textbf{2.31} & \textbf{90.22 $\pm$ 0.81} & \textbf{2.22} & \textbf{Peak 91.35\%} \\
+\textbf{ARCH-4C (Align + 4D Conf)} & 5 & 93.06 $\pm$ 0.26 & 2.33 & \textbf{90.27 $\pm$ 0.37} & \textbf{2.18} & \textbf{$\pm \mathbf{0.37\%}$} \\
+ARCH-5 (Local Visual Refine) & 5 & 92.89 $\pm$ 0.17 & 2.38 & 89.66 $\pm$ 0.82 & 2.33 & $\pm 0.82\%$ \\
+ARCH-7 (Gated Memory Fusion) & 5 & 92.85 $\pm$ 0.23 & 2.39 & 88.68 $\pm$ 1.99 & 2.56 & $\pm 1.99\%$ \\
+\bottomrule
+\end{tabular}
+\end{table*}

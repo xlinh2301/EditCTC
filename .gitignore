@@ -20,3 +20,8 @@ slurm-*.out
 .idea/
 .vscode/
 .DS_Store
+
+# Local SDLC tools and runtime state
+.local/
+.ai/scratch/
+.mimi-sdlc/

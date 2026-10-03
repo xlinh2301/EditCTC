@@ -1,0 +1,24 @@
+\section{Alignment-Guided Refinement Methodology}
+\label{sec:method}
+
+\subsection{Gaussian Spatial Bias (ARCH-4)}
+Given CTC character peak timestamps $t_i \in [0, T-1]$, normalized horizontal centers are defined as $c_i = t_i / (T - 1)$. For high-resolution visual memory keys $u_k = (k \bmod W) / (W - 1)$, the Gaussian Spatial Prior matrix $\mathbf{B} \in \mathbb{R}^{N \times M}$ is injected directly into the cross-attention logits:
+\begin{equation}
+\mathbf{B}_{i, k} = \lambda \cdot \exp\left(-\frac{(u_k - c_i)^2}{2\sigma^2}\right)
+\end{equation}
+\begin{equation}
+\text{AttnLogits}_{i, k} = \frac{Q_i K_k^T}{\sqrt{d}} + \mathbf{B}_{i, k}
+\end{equation}
+
+\subsection{Continuous 4D Uncertainty (ARCH-4C)}
+To communicate CTC ambiguity to the decoder, we extract the 4D uncertainty vector $\mathbf{c}_i = [p_1, p_2, p_1-p_2, \mathcal{H}(p)]^T$ and fuse it into the query via an adaptive gate:
+\begin{equation}
+\mathbf{q}_i = E_{tok}(s_i) + \tanh(\alpha) \cdot \text{MLP}(\mathbf{c}_i)
+\end{equation}
+
+\subsection{Decoupled Change vs. Token Heads (ARCH-1)}
+To resolve over-correction, we decouple binary modification detection from vocabulary distribution prediction:
+\begin{equation}
+\mathcal{L}_{total} = \mathcal{L}_{ctc} + \gamma_{change} \mathcal{L}_{change} + \gamma_{token} \mathcal{L}_{token}
+\end{equation}
+During inference, a token is replaced if and only if $P_{change, i} \ge 0.50$ and $P_{vocab, i}(\hat{v}_{best}) - P_{vocab, i}(s_i) \ge 0.15$.

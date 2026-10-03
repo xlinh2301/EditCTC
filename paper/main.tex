@@ -1,0 +1,39 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage{cvpr}
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{microtype}
+\usepackage{hyperref}
+
+\title{EditCTC: Alignment-Guided Non-Autoregressive Sequence Refinement for Robust Visual Meter Recognition}
+
+\author{
+Anonymous Authors\\
+Institution\\
+{\tt\small \{author\}@domain.com}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Connectionist Temporal Classification (CTC) decoders are widely deployed in industrial edge Optical Character Recognition (OCR) due to their fast non-autoregressive inference. However, on degraded utility meter displays with severe glare, condensation, and perspective distortion, CTC predictions suffer from alignment drift, attention scattering, and fine-stroke character confusion. In this work, we introduce \textbf{EditCTC}, a sequence refinement framework that projects 1D CTC peak timestamps into 2D normalized spatial coordinates to compute a continuous Gaussian Spatial Bias directly inside cross-attention layers (ARCH-4). Combined with a 4D continuous uncertainty injection mechanism (ARCH-4C) and decoupled change-versus-token prediction heads (ARCH-1), EditCTC suppresses the over-correction pathology to 0.08\%. Across 52 multi-seed training runs on 1,145 challenging out-of-domain meter crops, EditCTC achieves state-of-the-art cross-dataset accuracy of 91.35\% (CER 1.92\%) with minimal seed variance ($\pm 0.37\%$), demonstrating exceptional industrial robustness.
+\end{abstract}
+
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+\input{sections/03_system_architecture}
+\input{sections/04_alignment_guided_refinement}
+\input{sections/05_multi_seed_evaluation}
+\input{sections/06_ablation_studies}
+\input{sections/07_conclusion}
+
+\bibliographystyle{ieee_fullname}
+\bibliography{references}
+
+\end{document}
