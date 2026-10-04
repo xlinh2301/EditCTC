@@ -1,0 +1,197 @@
+Architecture:
+  Backbone:
+    model_size: small
+    name: PPLCNetV4
+  Head:
+    edit_delta_threshold: 0.05
+    edit_dropout: 0.2
+    edit_gate_threshold: 0.5
+    edit_head_dropout: 0.2
+    edit_mode: token_refine
+    head_list:
+    - CTCHead:
+        Head:
+          fc_decay: 1.0e-05
+        Neck:
+          depth: 2
+          dims: 120
+          local_kernel: 7
+          mlp_ratio: 2.0
+          name: lightsvtr
+    - NRTRHead:
+        max_text_length: 25
+        nrtr_dim: 384
+    length_hidden: 128
+    length_max: 25
+    name: MultiHeadEditRefineNRTR
+    nrtr_dim: 384
+    nrtr_layers: 4
+    train_seed_corrupt_mode: ctc_aware_confusion
+    train_seed_corrupt_prob: 0.7
+    use_highres_visual: true
+    use_length_head: true
+    visual_encoder_dropout: 0.1
+    visual_encoder_heads: 8
+    visual_encoder_layers: 1
+    visual_in_channels: 384
+    visual_pos_max_height: 4
+    visual_pos_max_width: 96
+    use_explicit_change_head: true
+    use_align_guided_cross_attn: true
+    align_spatial_weight: 1.0
+    align_spatial_sigma: 0.15
+    # ARCH-9 (Exp-2): Confidence-Adaptive Spatial Sigma.
+    # `use_ctc_conf_embed`/`ctc_conf_dim=4` only turn on the 4D confidence
+    # computation needed to read the entropy channel; `use_ctc_conf_in_change_head`
+    # and `use_conf_in_decoder_query` are kept False so no *other* new
+    # parameters are introduced beyond `adaptive_sigma_beta` -- this lets the
+    # ARCH-4 SOTA checkpoint (EditCTC_ARCH4_AlignCrossAttn_SOTA_s1024) load in
+    # with every pretrained weight matching except the one new scalar.
+    use_ctc_conf_embed: true
+    ctc_conf_dim: 4
+    use_ctc_conf_in_change_head: false
+    use_conf_in_decoder_query: false
+    use_adaptive_spatial_sigma: true
+    adaptive_sigma_entropy_norm: 2.0
+    # Exp-3 (CTC-confidence-gated edit eligibility) is a pure inference-time
+    # rule with no learnable parameters -- left disabled (0.0) during
+    # training/fine-tuning and swept separately at eval time via
+    # `-o Architecture.Head.ctc_confidence_gate_margin=<value>`.
+    ctc_confidence_gate_margin: 0.0
+  algorithm: SVTR_LCNet
+  model_type: rec
+Eval:
+  dataset:
+    data_dir: /content/drive/MyDrive/research/EditCTC/release_EditCTC/data/in-domain/valid
+    label_file_list:
+    - /content/drive/MyDrive/research/EditCTC/release_EditCTC/data/in-domain/valid_label.txt
+    name: SimpleDataSet
+    transforms:
+    - DecodeImage:
+        channel_first: false
+        img_mode: BGR
+    - MultiLabelEncode:
+        gtc_encode: NRTRLabelEncode
+    - RecResizeImg:
+        image_shape:
+        - 3
+        - 48
+        - 320
+    - KeepKeys:
+        keep_keys:
+        - image
+        - label_ctc
+        - label_gtc
+        - length
+        - valid_ratio
+  loader:
+    batch_size_per_card: 128
+    drop_last: false
+    num_workers: 4
+    shuffle: false
+Global:
+  cal_metric_during_train: true
+  calc_epoch_interval: 1
+  character_dict_path: ppocr/utils/dict/ppocrv6_dict.txt
+  d2s_train_image_shape:
+  - 3
+  - 48
+  - 320
+  debug: false
+  distributed: false
+  epoch_num: 10
+  eval_batch_step:
+  - 0
+  - 40
+  freeze_ctc_backbone: true
+  infer_mode: false
+  log_smooth_window: 20
+  max_text_length: 25
+  model_name: PP-OCRv6_small_rec
+  pretrained_model: /content/drive/MyDrive/research/EditCTC/DATA/Checkpoints/EditCTC_Top10_Best_Checkpoints/EditCTC_ARCH4_AlignCrossAttn_SOTA_s1024
+  print_batch_step: 10
+  save_epoch_step: 1
+  save_model_dir: /content/drive/MyDrive/research/EditCTC/release_EditCTC/checkpoints/arch9_adaptive_spatial_s1024
+  seed: 1024
+  use_gpu: true
+  use_space_char: true
+Loss:
+  gate_mode: random
+  gate_percentile: 0.1
+  gate_pos_weight: 4.0
+  length_max: 25
+  loss_config_list:
+  - CTCLoss: null
+  - LengthLoss: null
+  name: MultiLossEditRefineToken
+  weight_edit: 1.0
+  weight_length: 0.1
+  use_decoupled_loss: false
+  weight_gate: 4.0
+Metric:
+  main_indicator: acc
+  name: RecMetric
+Optimizer:
+  beta1: 0.9
+  beta2: 0.999
+  lr:
+    learning_rate: 0.0001
+    name: Cosine
+    warmup_epoch: 1
+  name: Adam
+  regularizer:
+    factor: 0.0001
+    name: L2
+PostProcess:
+  name: CTCLabelDecode
+Train:
+  dataset:
+    data_dir: /content/drive/MyDrive/research/EditCTC/release_EditCTC/data/in-domain/train
+    ds_width: false
+    ext_op_transform_idx: 1
+    label_file_list:
+    - /content/drive/MyDrive/research/EditCTC/release_EditCTC/data/in-domain/train_label.txt
+    name: MultiScaleDataSet
+    transforms:
+    - DecodeImage:
+        channel_first: false
+        img_mode: BGR
+    - RecAug:
+        blur_prob: 0.1
+        crop_prob: 0.2
+        hsv_aug_prob: 0.2
+        jitter_prob: 0.2
+        noise_prob: 0.2
+        reverse_prob: 0.0
+        tia_prob: 0.2
+    - MultiLabelEncode:
+        gtc_encode: NRTRLabelEncode
+    - KeepKeys:
+        keep_keys:
+        - image
+        - label_ctc
+        - label_gtc
+        - length
+        - valid_ratio
+  loader:
+    batch_size_per_card: 64
+    drop_last: true
+    num_workers: 4
+    shuffle: true
+  sampler:
+    divided_factor:
+    - 8
+    - 16
+    - 16
+    first_bs: 64
+    fix_bs: true
+    is_training: true
+    name: MultiScaleSampler
+    scales:
+    - - 320
+      - 32
+    - - 320
+      - 48
+    - - 320
+      - 64
+profiler_options: null

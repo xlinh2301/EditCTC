@@ -6,6 +6,7 @@ tokens while cross-attending to a memory made from the CTC feature sequence
 and a small high-resolution encoder of the original image.  Its hidden states
 feed the edit-op and replacement-token heads.
 """
+
 from __future__ import absolute_import, division, print_function
 
 import numpy as np
@@ -13,13 +14,13 @@ import paddle
 from paddle import nn
 from paddle.nn import functional as F
 
-from .rec_multi_head import MultiHead
-from .rec_nrtr_head import TransformerBlock
 from .rec_edit_refine_head import (
     EditRefineDecoder,
     apply_edit_ops,
     build_refined_ctc_probs,
 )
+from .rec_multi_head import MultiHead
+from .rec_nrtr_head import TransformerBlock
 
 
 def ctc_seed_and_margin(ctc_logits, max_seed_len):
@@ -77,7 +78,7 @@ def ctc_seed_and_conf(ctc_logits, max_seed_len, conf_dim=2):
     alternatives = np.zeros((bsz, max_seed_len), dtype="int64")
     confs = np.zeros((bsz, max_seed_len, conf_dim), dtype="float32")
     timesteps = np.zeros((bsz, max_seed_len), dtype="int64")
-    
+
     for b in range(bsz):
         seq_ids = ids[b].tolist()
         T = len(seq_ids)
@@ -104,7 +105,9 @@ def ctc_seed_and_conf(ctc_logits, max_seed_len, conf_dim=2):
                         confs[b, n, 1] = m
                     elif conf_dim == 4:
                         p_vec = probs[b, peak_t]
-                        entropy = -float(np.sum(p_vec * np.log(np.clip(p_vec, 1e-12, 1.0))))
+                        entropy = -float(
+                            np.sum(p_vec * np.log(np.clip(p_vec, 1e-12, 1.0)))
+                        )
                         confs[b, n, 0] = p_top1
                         confs[b, n, 1] = p_top2
                         confs[b, n, 2] = m
@@ -138,7 +141,6 @@ def ctc_seed_and_conf(ctc_logits, max_seed_len, conf_dim=2):
             n += 1
         lens[b] = n
     return seeds, lens, margins, alternatives, confs, timesteps
-
 
 
 class SharedHighResVisualMemory(nn.Layer):
@@ -177,9 +179,7 @@ class SharedHighResVisualMemory(nn.Layer):
             self.proj = nn.Conv2D(in_channels, dim, kernel_size=1)
         # Depthwise local mixing preserves character strokes before global
         # attention and is cheap at the 3x80 PPLCNetV4 feature resolution.
-        self.local_mix = nn.Conv2D(
-            dim, dim, kernel_size=3, padding=1, groups=dim
-        )
+        self.local_mix = nn.Conv2D(dim, dim, kernel_size=3, padding=1, groups=dim)
         self.use_ms_stroke_mixer = bool(use_ms_stroke_mixer)
         if self.use_ms_stroke_mixer:
             self.stroke_mix_h = nn.Conv2D(
@@ -187,7 +187,9 @@ class SharedHighResVisualMemory(nn.Layer):
             )
         self.use_local_refine_block = bool(use_local_refine_block)
         if self.use_local_refine_block:
-            self.local_refine_dw = nn.Conv2D(dim, dim, kernel_size=3, padding=1, groups=dim)
+            self.local_refine_dw = nn.Conv2D(
+                dim, dim, kernel_size=3, padding=1, groups=dim
+            )
             self.local_refine_pw = nn.Conv2D(dim, dim, kernel_size=1)
             self.local_refine_norm = nn.BatchNorm2D(dim)
             self.local_refine_act = nn.GELU()
@@ -230,8 +232,16 @@ class SharedHighResVisualMemory(nn.Layer):
             raise ValueError("high-resolution visual feature must be [B,C,H,W]")
         b, _, height, width = feature_map.shape
         if self.use_coord_conv:
-            y_coords = paddle.linspace(-1.0, 1.0, height, dtype=feature_map.dtype).reshape([1, 1, height, 1]).tile([b, 1, 1, width])
-            x_coords = paddle.linspace(-1.0, 1.0, width, dtype=feature_map.dtype).reshape([1, 1, 1, width]).tile([b, 1, height, 1])
+            y_coords = (
+                paddle.linspace(-1.0, 1.0, height, dtype=feature_map.dtype)
+                .reshape([1, 1, height, 1])
+                .tile([b, 1, 1, width])
+            )
+            x_coords = (
+                paddle.linspace(-1.0, 1.0, width, dtype=feature_map.dtype)
+                .reshape([1, 1, 1, width])
+                .tile([b, 1, height, 1])
+            )
             coords = paddle.concat([feature_map, x_coords, y_coords], axis=1)
             x = self.proj(coords)
         else:
@@ -253,9 +263,10 @@ class SharedHighResVisualMemory(nn.Layer):
         # or silently dropping the extra columns.
         base_h = min(height, self.max_height)
         base_w = min(width, self.max_width)
-        pos = self.visual_row_embed[:, :base_h, :, :] + self.visual_col_embed[
-            :, :, :base_w, :
-        ]
+        pos = (
+            self.visual_row_embed[:, :base_h, :, :]
+            + self.visual_col_embed[:, :, :base_w, :]
+        )
         if base_h != height or base_w != width:
             pos = F.interpolate(
                 pos.transpose([0, 3, 1, 2]),
@@ -287,7 +298,8 @@ class MultiHeadEditRefineNRTR(MultiHead):
         self.nrtr_dim = kwargs.get("nrtr_dim", 384)
         self.ctc_mem_proj = (
             nn.Linear(self.ctc_encoder.out_channels, self.nrtr_dim)
-            if self.ctc_encoder.out_channels != self.nrtr_dim else None
+            if self.ctc_encoder.out_channels != self.nrtr_dim
+            else None
         )
         # High-resolution image tokens: 48x320 -> 12x80 -> height-pooled 80
         # tokens.  This is intentionally small; the CTC memory remains the
@@ -322,11 +334,17 @@ class MultiHeadEditRefineNRTR(MultiHead):
         self.edit_tok_head = nn.Linear(self.nrtr_dim, self.vocab_size)
 
         # ARCH-1 & ARCH-2: Explicit Change Head & Confidence Conditioning
-        self.use_explicit_change_head = bool(kwargs.get("use_explicit_change_head", False))
+        self.use_explicit_change_head = bool(
+            kwargs.get("use_explicit_change_head", False)
+        )
         self.use_ctc_conf_embed = bool(kwargs.get("use_ctc_conf_embed", False))
         self.ctc_conf_dim = int(kwargs.get("ctc_conf_dim", 2))
-        self.use_ctc_conf_in_change_head = bool(kwargs.get("use_ctc_conf_in_change_head", True))
-        self.use_conf_in_decoder_query = bool(kwargs.get("use_conf_in_decoder_query", False))
+        self.use_ctc_conf_in_change_head = bool(
+            kwargs.get("use_ctc_conf_in_change_head", True)
+        )
+        self.use_conf_in_decoder_query = bool(
+            kwargs.get("use_conf_in_decoder_query", False)
+        )
         if self.use_explicit_change_head:
             change_in_dim = self.nrtr_dim
             if self.use_ctc_conf_embed and self.use_ctc_conf_in_change_head:
@@ -349,19 +367,60 @@ class MultiHeadEditRefineNRTR(MultiHead):
         self.use_ctc_align_embed = bool(kwargs.get("use_ctc_align_embed", False))
         self.max_ctc_timesteps = int(kwargs.get("max_ctc_timesteps", 40))
         if self.use_ctc_align_embed:
-            self.align_embedding = nn.Embedding(self.max_ctc_timesteps + 1, self.nrtr_dim)
+            self.align_embedding = nn.Embedding(
+                self.max_ctc_timesteps + 1, self.nrtr_dim
+            )
             self.align_scale = self.create_parameter(
                 shape=[1],
                 default_initializer=nn.initializer.Constant(0.0),
             )
 
         # ARCH-4: Alignment-Guided High-Res Cross-Attention
-        self.use_align_guided_cross_attn = bool(kwargs.get("use_align_guided_cross_attn", False))
+        self.use_align_guided_cross_attn = bool(
+            kwargs.get("use_align_guided_cross_attn", False)
+        )
         self.align_spatial_weight = float(kwargs.get("align_spatial_weight", 1.0))
         self.align_spatial_sigma = float(kwargs.get("align_spatial_sigma", 0.15))
 
+        # ARCH-9 (Exp-2): Confidence-Adaptive Spatial Sigma.  Widens the
+        # ARCH-4 Gaussian attention window for seed positions where the CTC
+        # posterior is high-entropy (ambiguous peak), and keeps it narrow
+        # when the CTC peak is confident.  Requires 4D confidence
+        # (use_ctc_conf_embed=True, ctc_conf_dim=4) so the entropy channel is
+        # available.  `adaptive_sigma_beta` is initialized deeply negative so
+        # softplus(beta) ~= 0 at step 0: a checkpoint trained without this
+        # flag (e.g. ARCH-4C) loads into this head and behaves identically
+        # until fine-tuning discovers whether widening helps.
+        self.use_adaptive_spatial_sigma = bool(
+            kwargs.get("use_adaptive_spatial_sigma", False)
+        )
+        self.adaptive_sigma_entropy_norm = float(
+            kwargs.get("adaptive_sigma_entropy_norm", 2.0)
+        )
+        if self.use_adaptive_spatial_sigma:
+            assert self.use_align_guided_cross_attn, (
+                "use_adaptive_spatial_sigma requires use_align_guided_cross_attn"
+            )
+            self.adaptive_sigma_beta = self.create_parameter(
+                shape=[1],
+                default_initializer=nn.initializer.Constant(-8.0),
+            )
+
+        # Exp-3: CTC-Confidence-Gated Edit Eligibility.  When the CTC top-1
+        # vs top-2 margin at a seed position already exceeds this threshold,
+        # the position is forced to KEEP regardless of the decoder's own
+        # op/token heads.  0.0 disables the gate (exact ARCH-4 behaviour).
+        # This is a pure inference-time decision rule with no new learnable
+        # parameters, so it is directly testable against existing
+        # checkpoints without any fine-tuning.
+        self.ctc_confidence_gate_margin = float(
+            kwargs.get("ctc_confidence_gate_margin", 0.0)
+        )
+
         # ARCH-7: Gated Memory Fusion (Dual Cross-Attention Routing)
-        self.use_gated_memory_fusion = bool(kwargs.get("use_gated_memory_fusion", False))
+        self.use_gated_memory_fusion = bool(
+            kwargs.get("use_gated_memory_fusion", False)
+        )
         if self.use_gated_memory_fusion:
             self.memory_gate_proj = nn.Linear(self.nrtr_dim * 2, self.nrtr_dim)
             self.memory_gate_act = nn.Sigmoid()
@@ -396,7 +455,7 @@ class MultiHeadEditRefineNRTR(MultiHead):
         if self.use_append_head:
             self.append_query = self.create_parameter(
                 shape=[1, 1, self.nrtr_dim],
-                default_initializer=nn.initializer.Normal(std=self.nrtr_dim ** -0.5),
+                default_initializer=nn.initializer.Normal(std=self.nrtr_dim**-0.5),
             )
             self.append_head = nn.Linear(self.nrtr_dim, 2)
         if self.edit_mode == "factorized":
@@ -411,9 +470,13 @@ class MultiHeadEditRefineNRTR(MultiHead):
 
         # Solution 2: Tail-Guided Spatial Cross-Attention parameters
         self.tail_spatial_attn = kwargs.get("tail_spatial_attn", False)
-        self.tail_spatial_bias_weight = float(kwargs.get("tail_spatial_bias_weight", 2.0))
+        self.tail_spatial_bias_weight = float(
+            kwargs.get("tail_spatial_bias_weight", 2.0)
+        )
         self.tail_spatial_sigma = float(kwargs.get("tail_spatial_sigma", 0.20))
-        self.tail_spatial_mode = kwargs.get("tail_spatial_mode", "tail_only")  # "tail_only" or "progressive"
+        self.tail_spatial_mode = kwargs.get(
+            "tail_spatial_mode", "tail_only"
+        )  # "tail_only" or "progressive"
         self.tail_prog_weight = float(kwargs.get("tail_prog_weight", 1.0))
         self.tail_prog_sigma = float(kwargs.get("tail_prog_sigma", 0.35))
 
@@ -462,10 +525,19 @@ class MultiHeadEditRefineNRTR(MultiHead):
         return ctc_memory, paddle.concat(parts, axis=1)
 
     def _seed_hidden(
-        self, memory, seed_ids, seed_lens=None, length_logits=None, with_append=False, confs=None, timesteps=None
+        self,
+        memory,
+        seed_ids,
+        seed_lens=None,
+        length_logits=None,
+        with_append=False,
+        confs=None,
+        timesteps=None,
     ):
         # NRTR uses 2 as BOS and CTC character ids map to NRTR ids +3.
-        nrtr_seed = paddle.where(seed_ids > 0, seed_ids + 3, paddle.zeros_like(seed_ids))
+        nrtr_seed = paddle.where(
+            seed_ids > 0, seed_ids + 3, paddle.zeros_like(seed_ids)
+        )
         tail_mask = None
         if with_append:
             nrtr_seed, tail_mask = self._insert_tail_slot(nrtr_seed, seed_lens)
@@ -475,12 +547,19 @@ class MultiHeadEditRefineNRTR(MultiHead):
         tgt = self.gtc_head.positional_encoding(tgt)
         if self.use_ctc_conf_embed and self.use_conf_in_decoder_query:
             if confs is None:
-                confs = paddle.zeros([seed_ids.shape[0], seed_ids.shape[1], self.ctc_conf_dim], dtype="float32")
+                confs = paddle.zeros(
+                    [seed_ids.shape[0], seed_ids.shape[1], self.ctc_conf_dim],
+                    dtype="float32",
+                )
             if with_append:
-                append_slot = paddle.zeros([confs.shape[0], 1, self.ctc_conf_dim], dtype=confs.dtype)
+                append_slot = paddle.zeros(
+                    [confs.shape[0], 1, self.ctc_conf_dim], dtype=confs.dtype
+                )
                 confs = paddle.concat([confs, append_slot], axis=1)
             # BOS slot gets neutral confidence [1.0, 1.0] (or [1.0, 0.0, 1.0, 0.0])
-            bos_conf = paddle.ones([seed_ids.shape[0], 1, self.ctc_conf_dim], dtype="float32")
+            bos_conf = paddle.ones(
+                [seed_ids.shape[0], 1, self.ctc_conf_dim], dtype="float32"
+            )
             conf_seq = paddle.concat([bos_conf, confs], axis=1)
             tgt = tgt + paddle.tanh(self.conf_scale) * self.conf_proj(conf_seq)
         if self.use_ctc_align_embed and timesteps is not None:
@@ -510,7 +589,9 @@ class MultiHeadEditRefineNRTR(MultiHead):
             tail_mask = paddle.concat(
                 [paddle.zeros_like(tail_mask[:, :1]), tail_mask], axis=1
             )
-            tgt = tgt + paddle.cast(self.append_query, tgt.dtype) * tail_mask.unsqueeze(-1)
+            tgt = tgt + paddle.cast(self.append_query, tgt.dtype) * tail_mask.unsqueeze(
+                -1
+            )
         mask = self.gtc_head.generate_square_subsequent_mask(tgt.shape[1])
         cross_mask = None
         if self.tail_spatial_attn or self.use_align_guided_cross_attn:
@@ -522,6 +603,7 @@ class MultiHeadEditRefineNRTR(MultiHead):
                 bsz=tgt.shape[0],
                 dtype=tgt.dtype,
                 timesteps=timesteps,
+                confs=confs,
             )
         for layer in self.gtc_head.decoder:
             if self.use_gated_memory_fusion and memory.shape[1] > 40:
@@ -533,10 +615,14 @@ class MultiHeadEditRefineNRTR(MultiHead):
                 tgt = layer.norm1(tgt + layer.dropout1(tgt1))
                 # 2. Dual Cross Attention
                 h_ctc = layer.cross_attn(tgt, key=ctc_mem)
-                vis_mask = cross_mask[:, :, :, ctc_len:] if cross_mask is not None else None
+                vis_mask = (
+                    cross_mask[:, :, :, ctc_len:] if cross_mask is not None else None
+                )
                 h_vis = layer.cross_attn(tgt, key=vis_mem, attn_mask=vis_mask)
                 # 3. Gated Fusion
-                gate = self.memory_gate_act(self.memory_gate_proj(paddle.concat([h_ctc, h_vis], axis=-1)))
+                gate = self.memory_gate_act(
+                    self.memory_gate_proj(paddle.concat([h_ctc, h_vis], axis=-1))
+                )
                 fused_h = gate * h_vis + (1.0 - gate) * h_ctc
                 tgt = layer.norm2(tgt + layer.dropout2(fused_h))
                 # 4. Feed Forward
@@ -546,9 +632,27 @@ class MultiHeadEditRefineNRTR(MultiHead):
         return self.edit_head_dropout(tgt[:, 1:, :])
 
     def _build_spatial_cross_bias(
-        self, tgt_len, mem_len, seed_lens=None, tail_mask=None, bsz=1, dtype="float32", timesteps=None
+        self,
+        tgt_len,
+        mem_len,
+        seed_lens=None,
+        tail_mask=None,
+        bsz=1,
+        dtype="float32",
+        timesteps=None,
+        confs=None,
     ):
         """Construct coordinate-aware spatial bias for cross-attention.
+
+        Vectorized (Exp-1): every per-sample/per-position term below is
+        computed as a single batched Paddle tensor expression instead of a
+        nested Python/`numpy` loop over `(batch, seed_position)`.  This keeps
+        the computation on Paddle tensors end to end, which (a) avoids a
+        `.numpy()` CPU round-trip every forward pass and (b) lets gradients
+        flow into `adaptive_sigma_beta` (Exp-2 / ARCH-9) -- the previous
+        implementation built the bias as a raw `numpy.ndarray` and only
+        converted to a tensor at the very end, which silently blocked any
+        gradient from reaching a learnable parameter used inside it.
 
         Args:
             tgt_len: sequence length of queries (including BOS), int
@@ -558,79 +662,174 @@ class MultiHeadEditRefineNRTR(MultiHead):
             bsz: batch size
             dtype: output tensor dtype
             timesteps: [B, max_seed_len] int64 tensor/array of CTC emitted timesteps
+            confs: [B, max_seed_len, conf_dim] float tensor/array of CTC confidence
+                (only consumed when `use_adaptive_spatial_sigma` is enabled)
         Returns:
             [B, 1, tgt_len, mem_len] float32 tensor of additive attention biases
         """
-        # 1. Compute horizontal normalized coordinate u in [0, 1] for each memory token
+        # 1. Horizontal normalized coordinate grid u in [0, 1] for each memory
+        # token.  This is a fixed geometric constant (no gradient needed), so
+        # it is cheapest to build once in numpy and lift into a tensor.
         if self.use_highres_visual:
             ctc_w = 40
             vis_len = mem_len - ctc_w
             if vis_len > 0:
-                vis_w = 80 if vis_len % 80 == 0 else (vis_len // 3 if vis_len % 3 == 0 else vis_len)
+                vis_w = (
+                    80
+                    if vis_len % 80 == 0
+                    else (vis_len // 3 if vis_len % 3 == 0 else vis_len)
+                )
                 vis_h = max(1, vis_len // vis_w)
                 u_ctc = np.linspace(0.0, 1.0, ctc_w, dtype=np.float32)
                 u_col = np.linspace(0.0, 1.0, vis_w, dtype=np.float32)
                 u_vis = np.tile(u_col, vis_h)
-                u = np.concatenate([u_ctc, u_vis])
+                u_np = np.concatenate([u_ctc, u_vis])
             else:
-                u = np.linspace(0.0, 1.0, mem_len, dtype=np.float32)
+                u_np = np.linspace(0.0, 1.0, mem_len, dtype=np.float32)
         elif self.use_original_image:
             ctc_w = 40
             raw_w = mem_len - ctc_w
             u_ctc = np.linspace(0.0, 1.0, ctc_w, dtype=np.float32)
             u_raw = np.linspace(0.0, 1.0, max(1, raw_w), dtype=np.float32)
-            u = np.concatenate([u_ctc, u_raw])
+            u_np = np.concatenate([u_ctc, u_raw])
         else:
-            u = np.linspace(0.0, 1.0, mem_len, dtype=np.float32)
+            u_np = np.linspace(0.0, 1.0, mem_len, dtype=np.float32)
+        u = paddle.to_tensor(u_np, dtype=dtype)  # [M]
 
-        # 2. Build bias tensor of shape [B, 1, tgt_len, mem_len]
-        bias_np = np.zeros((bsz, 1, tgt_len, mem_len), dtype=np.float32)
-        lens_np = (
-            seed_lens.numpy()
-            if seed_lens is not None
-            else np.full([bsz], tgt_len - 1, dtype="int64")
-        )
+        if seed_lens is not None:
+            lens_t = (
+                seed_lens.astype(dtype)
+                if isinstance(seed_lens, paddle.Tensor)
+                else paddle.to_tensor(seed_lens, dtype=dtype)
+            )
+        else:
+            lens_t = paddle.full([bsz], float(tgt_len - 1), dtype=dtype)
+        j_idx = paddle.arange(tgt_len, dtype=dtype)  # [Tg]
+        # valid_j[b, j] == True iff seed position j in {1, ..., n_b}
+        valid_j = paddle.logical_and(
+            j_idx.unsqueeze(0) >= 1.0, j_idx.unsqueeze(0) <= lens_t.unsqueeze(1)
+        )  # [B, Tg]
 
         tail_weight = self.tail_spatial_bias_weight
-        tail_sigma_sq2 = 2.0 * (self.tail_spatial_sigma ** 2)
+        tail_sigma_sq2 = 2.0 * (self.tail_spatial_sigma**2)
         prog_weight = self.tail_prog_weight
-        prog_sigma_sq2 = 2.0 * (self.tail_prog_sigma ** 2)
+        prog_sigma_sq2 = 2.0 * (self.tail_prog_sigma**2)
+        tail_bias_vec = tail_weight * paddle.exp(
+            -((u - 1.0) ** 2) / tail_sigma_sq2
+        )  # [M]
 
-        tail_bias_vec = tail_weight * np.exp(-((u - 1.0) ** 2) / tail_sigma_sq2)
+        bias_main = paddle.zeros([bsz, tgt_len, mem_len], dtype=dtype)  # [B, Tg, M]
 
-        tail_mask_np = tail_mask.numpy() if tail_mask is not None else None
+        # 2. Tail-guided bias on seed positions ("progressive" or "tail_only" mode)
+        if self.tail_spatial_mode == "progressive":
+            n_safe = paddle.clip(lens_t, min=1.0).unsqueeze(1)  # [B, 1]
+            c_j = (j_idx.unsqueeze(0) - 0.5) / n_safe  # [B, Tg]
+            diff = u.reshape([1, 1, mem_len]) - c_j.unsqueeze(-1)  # [B, Tg, M]
+            prog_bias = prog_weight * paddle.exp(-(diff**2) / prog_sigma_sq2)
+            bias_main = paddle.where(valid_j.unsqueeze(-1), prog_bias, bias_main)
+        elif self.tail_spatial_mode == "tail_only":
+            # Mild boost exactly on the last seed token j == n (1 <= n < tgt_len)
+            is_tail_pos = paddle.logical_and(
+                j_idx.unsqueeze(0) == lens_t.unsqueeze(1),
+                paddle.logical_and(
+                    lens_t.unsqueeze(1) >= 1.0, lens_t.unsqueeze(1) < float(tgt_len)
+                ),
+            )  # [B, Tg]
+            bias_main = paddle.where(
+                is_tail_pos.unsqueeze(-1),
+                0.5 * tail_bias_vec.reshape([1, 1, mem_len]),
+                bias_main,
+            )
 
-        for b in range(bsz):
-            n = int(lens_np[b])
-            # For seed positions j = 1..n
-            if self.tail_spatial_mode == "progressive":
-                for j in range(1, min(n + 1, tgt_len)):
-                    c_j = (j - 0.5) / max(1.0, float(n))
-                    bias_np[b, 0, j, :] = prog_weight * np.exp(-((u - c_j) ** 2) / prog_sigma_sq2)
-            elif self.tail_spatial_mode == "tail_only":
-                # Mild boost on the last seed token
-                if 1 <= n < tgt_len:
-                    bias_np[b, 0, n, :] = 0.5 * tail_bias_vec
+        # 3. ARCH-4/ARCH-9: Alignment-Guided Spatial Bias on individual seed tokens
+        if self.use_align_guided_cross_attn and timesteps is not None:
+            timesteps_t = (
+                timesteps
+                if isinstance(timesteps, paddle.Tensor)
+                else paddle.to_tensor(timesteps, dtype="int64")
+            )
+            max_j = min(tgt_len - 1, int(timesteps_t.shape[1]))
+            if max_j > 0:
+                t_slice = timesteps_t[:, :max_j].astype(
+                    dtype
+                )  # [B, max_j], column j-1 -> row j
+                c_align = t_slice / max(
+                    1.0, float(self.max_ctc_timesteps - 1)
+                )  # [B, max_j]
 
-            # ARCH-4: Alignment-Guided Spatial Bias on individual seed tokens
-            if self.use_align_guided_cross_attn and timesteps is not None:
-                timesteps_np = timesteps.numpy() if isinstance(timesteps, paddle.Tensor) else timesteps
-                align_sigma_sq2 = 2.0 * (self.align_spatial_sigma ** 2)
-                for j in range(1, min(n + 1, tgt_len)):
-                    t_val = float(timesteps_np[b, j - 1])
-                    c_j = t_val / max(1.0, float(self.max_ctc_timesteps - 1))
-                    bias_np[b, 0, j, :] += self.align_spatial_weight * np.exp(-((u - c_j) ** 2) / align_sigma_sq2)
+                if self.use_adaptive_spatial_sigma and confs is not None:
+                    confs_t = (
+                        confs
+                        if isinstance(confs, paddle.Tensor)
+                        else paddle.to_tensor(confs, dtype=dtype)
+                    )
+                    conf_j = min(max_j, int(confs_t.shape[1]))
+                    entropy = confs_t[
+                        :, :conf_j, -1
+                    ]  # last channel == entropy when ctc_conf_dim=4
+                    if conf_j < max_j:
+                        entropy = paddle.concat(
+                            [entropy, paddle.zeros([bsz, max_j - conf_j], dtype=dtype)],
+                            axis=1,
+                        )
+                    entropy_norm = paddle.clip(
+                        entropy / self.adaptive_sigma_entropy_norm, min=0.0, max=1.0
+                    )
+                    sigma_scale = 1.0 + entropy_norm * F.softplus(
+                        self.adaptive_sigma_beta
+                    )
+                    sigma_eff = self.align_spatial_sigma * sigma_scale  # [B, max_j]
+                else:
+                    sigma_eff = paddle.full(
+                        [bsz, max_j], self.align_spatial_sigma, dtype=dtype
+                    )
 
-            # For append token (where tail_mask is 1.0 or position n + 1)
-            if tail_mask_np is not None:
-                append_pos = np.where(tail_mask_np[b] > 0.5)[0]
-                for p in append_pos:
-                    if p < tgt_len:
-                        bias_np[b, 0, p, :] = tail_bias_vec
-            elif (n + 1) < tgt_len and self.use_append_head:
-                bias_np[b, 0, n + 1, :] = tail_bias_vec
+                align_sigma_sq2 = 2.0 * (sigma_eff**2)  # [B, max_j]
+                diff_align = u.reshape([1, 1, mem_len]) - c_align.unsqueeze(
+                    -1
+                )  # [B, max_j, M]
+                align_bias = self.align_spatial_weight * paddle.exp(
+                    -(diff_align**2) / align_sigma_sq2.unsqueeze(-1)
+                )
+                valid_align = valid_j[:, 1 : 1 + max_j]  # [B, max_j]
+                add_term = paddle.where(
+                    valid_align.unsqueeze(-1), align_bias, paddle.zeros_like(align_bias)
+                )
+                bias_main = paddle.concat(
+                    [
+                        bias_main[:, :1, :],
+                        bias_main[:, 1 : 1 + max_j, :] + add_term,
+                        bias_main[:, 1 + max_j :, :],
+                    ],
+                    axis=1,
+                )
 
-        return paddle.to_tensor(bias_np, dtype=dtype)
+        # 4. Append-token bias (where tail_mask marks 1.0, or fallback position n + 1)
+        if tail_mask is not None:
+            tail_mask_t = (
+                tail_mask
+                if isinstance(tail_mask, paddle.Tensor)
+                else paddle.to_tensor(tail_mask, dtype=dtype)
+            )
+            append_rows = tail_mask_t.astype(dtype) > 0.5  # [B, Tg]
+            bias_main = paddle.where(
+                append_rows.unsqueeze(-1),
+                tail_bias_vec.reshape([1, 1, mem_len]),
+                bias_main,
+            )
+        elif self.use_append_head:
+            append_pos = lens_t + 1.0  # [B]
+            valid_append = append_pos < float(tgt_len)
+            rows_match = paddle.logical_and(
+                j_idx.unsqueeze(0) == append_pos.unsqueeze(1), valid_append.unsqueeze(1)
+            )  # [B, Tg]
+            bias_main = paddle.where(
+                rows_match.unsqueeze(-1),
+                tail_bias_vec.reshape([1, 1, mem_len]),
+                bias_main,
+            )
+
+        return bias_main.unsqueeze(1)  # [B, 1, Tg, M]
 
     @staticmethod
     def _insert_tail_slot(seed, seed_lens):
@@ -653,21 +852,40 @@ class MultiHeadEditRefineNRTR(MultiHead):
             mask[b, n] = 1.0
         return paddle.to_tensor(out, dtype=seed.dtype), paddle.to_tensor(mask)
 
-    def _edit_forward(self, ctc_out, memory, length_logits, seed_ids=None, seed_lens=None, confs=None, timesteps=None):
+    def _edit_forward(
+        self,
+        ctc_out,
+        memory,
+        length_logits,
+        seed_ids=None,
+        seed_lens=None,
+        confs=None,
+        timesteps=None,
+    ):
         if seed_ids is None:
             seeds_np, lens_np, _, _, confs_np, timesteps_np = ctc_seed_and_conf(
                 ctc_out, self.max_seed_len, conf_dim=self.ctc_conf_dim
             )
             seed_ids = paddle.to_tensor(seeds_np, dtype="int64")
             seed_lens = paddle.to_tensor(lens_np, dtype="int64")
-            confs = paddle.to_tensor(confs_np, dtype="float32") if self.use_ctc_conf_embed else None
-            timesteps = paddle.to_tensor(timesteps_np, dtype="int64") if (self.use_ctc_align_embed or self.use_align_guided_cross_attn) else None
+            confs = (
+                paddle.to_tensor(confs_np, dtype="float32")
+                if self.use_ctc_conf_embed
+                else None
+            )
+            timesteps = (
+                paddle.to_tensor(timesteps_np, dtype="int64")
+                if (self.use_ctc_align_embed or self.use_align_guided_cross_attn)
+                else None
+            )
         elif confs is None and self.use_ctc_conf_embed:
             _, _, _, _, confs_np, _ = ctc_seed_and_conf(
                 ctc_out, self.max_seed_len, conf_dim=self.ctc_conf_dim
             )
             confs = paddle.to_tensor(confs_np, dtype="float32")
-        elif timesteps is None and (self.use_ctc_align_embed or self.use_align_guided_cross_attn):
+        elif timesteps is None and (
+            self.use_ctc_align_embed or self.use_align_guided_cross_attn
+        ):
             _, _, _, _, _, timesteps_np = ctc_seed_and_conf(
                 ctc_out, self.max_seed_len, conf_dim=self.ctc_conf_dim
             )
@@ -698,11 +916,19 @@ class MultiHeadEditRefineNRTR(MultiHead):
             hidden = hidden[:, :width, :]
         op_logits = self.edit_op_head(hidden)
         tok_logits = self.edit_tok_head(hidden)
-        out = {"op_logits": op_logits, "tok_logits": tok_logits,
-               "seed_ids": seed_ids, "seed_lens": seed_lens}
+        out = {
+            "op_logits": op_logits,
+            "tok_logits": tok_logits,
+            "seed_ids": seed_ids,
+            "seed_lens": seed_lens,
+        }
         if self.use_explicit_change_head:
-            if self.use_ctc_conf_embed and self.use_ctc_conf_in_change_head and confs is not None:
-                ch_in = paddle.concat([hidden, confs[:, :hidden.shape[1], :]], axis=-1)
+            if (
+                self.use_ctc_conf_embed
+                and self.use_ctc_conf_in_change_head
+                and confs is not None
+            ):
+                ch_in = paddle.concat([hidden, confs[:, : hidden.shape[1], :]], axis=-1)
                 out["change_logits"] = self.change_head(ch_in).squeeze(-1)
             else:
                 out["change_logits"] = self.change_head(hidden).squeeze(-1)
@@ -714,7 +940,15 @@ class MultiHeadEditRefineNRTR(MultiHead):
             )
         return out
 
-    def _corrupt_seed_tokens(self, seeds_np, lens_np, margins_np, alternatives_np=None, confs_np=None, timesteps_np=None):
+    def _corrupt_seed_tokens(
+        self,
+        seeds_np,
+        lens_np,
+        margins_np,
+        alternatives_np=None,
+        confs_np=None,
+        timesteps_np=None,
+    ):
         """Create guaranteed-ish replacement and truncation positives for factorized training.
 
         This is training-only denoising: CTC/backbone outputs remain untouched,
@@ -736,20 +970,76 @@ class MultiHeadEditRefineNRTR(MultiHead):
             timesteps_np = timesteps_np.copy()
         # Empirical OCR digit confusion pairs for realistic denoising
         confusion_pairs = {
-            33: [34, 41, 35, 42, 57, 45, 39],  # '0' -> '1', '8', '2', '9', 'O', 'C', '6'
-            34: [33, 37, 40, 36, 35, 51, 62],  # '1' -> '0', '4', '7', '3', '2', 'I', 'T'
-            35: [33, 36, 34, 40, 37, 68],      # '2' -> '0', '3', '1', '7', '4', 'Z'
-            36: [38, 33, 34, 39, 40, 41, 44],  # '3' -> '5', '0', '1', '6', '7', '8', 'B'
-            37: [33, 34, 40, 42, 35, 43],      # '4' -> '0', '1', '7', '9', '2', 'A'
-            38: [33, 34, 39, 42, 35, 61, 36],  # '5' -> '0', '1', '6', '9', '2', 'S', '3'
-            39: [33, 41, 34, 35, 37, 49, 38],  # '6' -> '0', '8', '1', '2', '4', 'G', '5'
-            40: [33, 34, 35, 38, 36, 62, 68],  # '7' -> '0', '1', '2', '5', '3', 'T', 'Z'
-            41: [33, 36, 34, 39, 35, 44, 42],  # '8' -> '0', '3', '1', '6', '2', 'B', '9'
-            42: [33, 41, 34, 40, 36, 37],      # '9' -> '0', '8', '1', '7', '3', '4'
-            61: [38, 41],                       # 'S' -> '5', '8'
-            57: [33, 46],                       # 'O' -> '0', 'D'
-            44: [41, 36],                       # 'B' -> '8', '3'
-            51: [34, 62],                       # 'I' -> '1', 'T'
+            33: [
+                34,
+                41,
+                35,
+                42,
+                57,
+                45,
+                39,
+            ],  # '0' -> '1', '8', '2', '9', 'O', 'C', '6'
+            34: [
+                33,
+                37,
+                40,
+                36,
+                35,
+                51,
+                62,
+            ],  # '1' -> '0', '4', '7', '3', '2', 'I', 'T'
+            35: [33, 36, 34, 40, 37, 68],  # '2' -> '0', '3', '1', '7', '4', 'Z'
+            36: [
+                38,
+                33,
+                34,
+                39,
+                40,
+                41,
+                44,
+            ],  # '3' -> '5', '0', '1', '6', '7', '8', 'B'
+            37: [33, 34, 40, 42, 35, 43],  # '4' -> '0', '1', '7', '9', '2', 'A'
+            38: [
+                33,
+                34,
+                39,
+                42,
+                35,
+                61,
+                36,
+            ],  # '5' -> '0', '1', '6', '9', '2', 'S', '3'
+            39: [
+                33,
+                41,
+                34,
+                35,
+                37,
+                49,
+                38,
+            ],  # '6' -> '0', '8', '1', '2', '4', 'G', '5'
+            40: [
+                33,
+                34,
+                35,
+                38,
+                36,
+                62,
+                68,
+            ],  # '7' -> '0', '1', '2', '5', '3', 'T', 'Z'
+            41: [
+                33,
+                36,
+                34,
+                39,
+                35,
+                44,
+                42,
+            ],  # '8' -> '0', '3', '1', '6', '2', 'B', '9'
+            42: [33, 41, 34, 40, 36, 37],  # '9' -> '0', '8', '1', '7', '3', '4'
+            61: [38, 41],  # 'S' -> '5', '8'
+            57: [33, 46],  # 'O' -> '0', 'D'
+            44: [41, 36],  # 'B' -> '8', '3'
+            51: [34, 62],  # 'I' -> '1', 'T'
         }
 
         for b, n_raw in enumerate(lens_np):
@@ -780,13 +1070,15 @@ class MultiHeadEditRefineNRTR(MultiHead):
                 # Action 2: 10% middle drop to teach insert
                 elif r_action < 0.35 and n > 2:
                     drop_pos = int(np.random.randint(1, n - 1))
-                    seeds_np[b, drop_pos:n - 1] = seeds_np[b, drop_pos + 1:n]
-                    margins_np[b, drop_pos:n - 1] = margins_np[b, drop_pos + 1:n]
+                    seeds_np[b, drop_pos : n - 1] = seeds_np[b, drop_pos + 1 : n]
+                    margins_np[b, drop_pos : n - 1] = margins_np[b, drop_pos + 1 : n]
                     if confs_np is not None:
-                        confs_np[b, drop_pos:n - 1] = confs_np[b, drop_pos + 1:n]
+                        confs_np[b, drop_pos : n - 1] = confs_np[b, drop_pos + 1 : n]
                         confs_np[b, n - 1] = 0.0
                     if timesteps_np is not None:
-                        timesteps_np[b, drop_pos:n - 1] = timesteps_np[b, drop_pos + 1:n]
+                        timesteps_np[b, drop_pos : n - 1] = timesteps_np[
+                            b, drop_pos + 1 : n
+                        ]
                         timesteps_np[b, n - 1] = 0
                     lens_np[b] = n - 1
                     continue
@@ -822,7 +1114,10 @@ class MultiHeadEditRefineNRTR(MultiHead):
                             confs_np[b, pos, 1] = sim_m
                         elif confs_np.shape[-1] == 4:
                             sim_p2 = sim_p - sim_m
-                            sim_ent = float(-sim_p * np.log(max(sim_p, 1e-6)) - sim_p2 * np.log(max(sim_p2, 1e-6)))
+                            sim_ent = float(
+                                -sim_p * np.log(max(sim_p, 1e-6))
+                                - sim_p2 * np.log(max(sim_p2, 1e-6))
+                            )
                             confs_np[b, pos, 0] = sim_p
                             confs_np[b, pos, 1] = sim_p2
                             confs_np[b, pos, 2] = sim_m
@@ -843,25 +1138,31 @@ class MultiHeadEditRefineNRTR(MultiHead):
                     continue
                 elif r_action < 0.30 and n > 2:
                     drop_pos = int(np.random.randint(1, n - 1))
-                    seeds_np[b, drop_pos:n - 1] = seeds_np[b, drop_pos + 1:n]
-                    margins_np[b, drop_pos:n - 1] = margins_np[b, drop_pos + 1:n]
+                    seeds_np[b, drop_pos : n - 1] = seeds_np[b, drop_pos + 1 : n]
+                    margins_np[b, drop_pos : n - 1] = margins_np[b, drop_pos + 1 : n]
                     if confs_np is not None:
-                        confs_np[b, drop_pos:n - 1] = confs_np[b, drop_pos + 1:n]
+                        confs_np[b, drop_pos : n - 1] = confs_np[b, drop_pos + 1 : n]
                         confs_np[b, n - 1] = 0.0
                     if timesteps_np is not None:
-                        timesteps_np[b, drop_pos:n - 1] = timesteps_np[b, drop_pos + 1:n]
+                        timesteps_np[b, drop_pos : n - 1] = timesteps_np[
+                            b, drop_pos + 1 : n
+                        ]
                         timesteps_np[b, n - 1] = 0
                     lens_np[b] = n - 1
                     continue
                 else:
                     r = float(np.random.random())
                     if r < 0.40:
-                        pos = 0       # 40% corrupt leading token
+                        pos = 0  # 40% corrupt leading token
                     elif r < 0.80:
-                        pos = n - 1   # 40% corrupt trailing token
+                        pos = n - 1  # 40% corrupt trailing token
                     else:
-                        pos = int(np.random.randint(n)) # 20% random any position
-            elif self.train_seed_corrupt_mode in ("boundary_biased", "full_corruption", "tail_biased"):
+                        pos = int(np.random.randint(n))  # 20% random any position
+            elif self.train_seed_corrupt_mode in (
+                "boundary_biased",
+                "full_corruption",
+                "tail_biased",
+            ):
                 # Action 1: Trailing truncation (drop last character) - teaches append_head and tail insertion
                 if r_action < 0.40 and n > 1:
                     lens_np[b] = n - 1
@@ -873,13 +1174,15 @@ class MultiHeadEditRefineNRTR(MultiHead):
                 # Action 2: Random middle deletion - teaches INSERT_AFTER in middle
                 elif r_action < 0.55 and n > 2:
                     drop_pos = int(np.random.randint(1, n - 1))
-                    seeds_np[b, drop_pos:n - 1] = seeds_np[b, drop_pos + 1:n]
-                    margins_np[b, drop_pos:n - 1] = margins_np[b, drop_pos + 1:n]
+                    seeds_np[b, drop_pos : n - 1] = seeds_np[b, drop_pos + 1 : n]
+                    margins_np[b, drop_pos : n - 1] = margins_np[b, drop_pos + 1 : n]
                     if confs_np is not None:
-                        confs_np[b, drop_pos:n - 1] = confs_np[b, drop_pos + 1:n]
+                        confs_np[b, drop_pos : n - 1] = confs_np[b, drop_pos + 1 : n]
                         confs_np[b, n - 1] = 0.0
                     if timesteps_np is not None:
-                        timesteps_np[b, drop_pos:n - 1] = timesteps_np[b, drop_pos + 1:n]
+                        timesteps_np[b, drop_pos : n - 1] = timesteps_np[
+                            b, drop_pos + 1 : n
+                        ]
                         timesteps_np[b, n - 1] = 0
                     lens_np[b] = n - 1
                     continue
@@ -887,18 +1190,21 @@ class MultiHeadEditRefineNRTR(MultiHead):
                 else:
                     r = float(np.random.random())
                     if r < 0.50:
-                        pos = 0       # 50% chance corrupt leading token
+                        pos = 0  # 50% chance corrupt leading token
                     elif r < 0.80:
-                        pos = n - 1   # 30% chance corrupt trailing token
+                        pos = n - 1  # 30% chance corrupt trailing token
                     else:
-                        pos = int(np.random.randint(n)) # 20% random any position
+                        pos = int(np.random.randint(n))  # 20% random any position
             else:
                 pos = int(np.random.randint(n))
 
             old = int(seeds_np[b, pos])
             if self.vocab_size <= 2:
                 continue
-            if self.train_seed_corrupt_mode == "ctc_alt" and alternatives_np is not None:
+            if (
+                self.train_seed_corrupt_mode == "ctc_alt"
+                and alternatives_np is not None
+            ):
                 new = int(alternatives_np[b, pos])
                 if new <= 0 or new >= self.vocab_size:
                     new = int(np.random.randint(1, self.vocab_size))
@@ -916,7 +1222,10 @@ class MultiHeadEditRefineNRTR(MultiHead):
                     confs_np[b, pos, 1] = sim_m
                 elif confs_np.shape[-1] == 4:
                     sim_p2 = sim_p - sim_m
-                    sim_ent = float(-sim_p * np.log(max(sim_p, 1e-6)) - sim_p2 * np.log(max(sim_p2, 1e-6)))
+                    sim_ent = float(
+                        -sim_p * np.log(max(sim_p, 1e-6))
+                        - sim_p2 * np.log(max(sim_p2, 1e-6))
+                    )
                     confs_np[b, pos, 0] = sim_p
                     confs_np[b, pos, 1] = sim_p2
                     confs_np[b, pos, 2] = sim_m
@@ -927,20 +1236,35 @@ class MultiHeadEditRefineNRTR(MultiHead):
         ctc_memory, memory = self._memory(x, original_image)
         ctc_out = self.ctc_head(ctc_memory, targets)
         length_logits = self.length_head(ctc_memory) if self.use_length_head else None
-        
+
         need_conf = self.use_ctc_conf_embed
         need_align = self.use_ctc_align_embed or self.use_align_guided_cross_attn
-        seeds_np, lens_np, margins, alternatives, confs_np, timesteps_np = ctc_seed_and_conf(
-            ctc_out, self.max_seed_len, conf_dim=self.ctc_conf_dim
+        seeds_np, lens_np, margins, alternatives, confs_np, timesteps_np = (
+            ctc_seed_and_conf(ctc_out, self.max_seed_len, conf_dim=self.ctc_conf_dim)
         )
         seeds_np, lens_np, margins, confs_np, timesteps_np = self._corrupt_seed_tokens(
-            seeds_np, lens_np, margins, alternatives, confs_np=confs_np, timesteps_np=timesteps_np
+            seeds_np,
+            lens_np,
+            margins,
+            alternatives,
+            confs_np=confs_np,
+            timesteps_np=timesteps_np,
         )
         seeds = paddle.to_tensor(seeds_np, dtype="int64")
         lens = paddle.to_tensor(lens_np, dtype="int64")
         confs = paddle.to_tensor(confs_np, dtype="float32") if need_conf else None
-        timesteps = paddle.to_tensor(timesteps_np, dtype="int64") if need_align else None
-        edit_out = self._edit_forward(ctc_out, memory, length_logits, seeds, lens, confs=confs, timesteps=timesteps)
+        timesteps = (
+            paddle.to_tensor(timesteps_np, dtype="int64") if need_align else None
+        )
+        edit_out = self._edit_forward(
+            ctc_out,
+            memory,
+            length_logits,
+            seeds,
+            lens,
+            confs=confs,
+            timesteps=timesteps,
+        )
         edit_out["seed_margin"] = paddle.to_tensor(margins, dtype="float32")
         if self.training:
             out = {"ctc": ctc_out, "ctc_neck": ctc_memory, "edit": edit_out}
@@ -990,6 +1314,21 @@ class MultiHeadEditRefineNRTR(MultiHead):
             if self.edit_candidate_top2_only:
                 alt_t = paddle.to_tensor(alternatives, dtype="int64")
                 edit_mask = paddle.logical_and(edit_mask, tok_ids_t == alt_t)
+            if self.ctc_confidence_gate_margin > 0.0:
+                # Exp-3: when the CTC top-1/top-2 margin at a seed position
+                # already clears this threshold, trust the greedy CTC seed
+                # outright and force KEEP there, regardless of what the
+                # decoder's own op/token heads say.  Frees the decoder's
+                # error budget (and its false-edit risk) for positions where
+                # CTC itself was already ambiguous.  Deterministic, no new
+                # parameters -- directly testable on existing checkpoints.
+                margin_t = paddle.to_tensor(margins, dtype="float32")[
+                    :, : edit_mask.shape[1]
+                ]
+                high_conf_keep = margin_t >= self.ctc_confidence_gate_margin
+                edit_mask = paddle.logical_and(
+                    edit_mask, paddle.logical_not(high_conf_keep)
+                )
             op_ids = edit_mask.astype("int64").numpy()
             if self.edit_ops_enabled:
                 # F3: let the 4-way op head also fire DELETE / INSERT_AFTER.
@@ -1010,9 +1349,7 @@ class MultiHeadEditRefineNRTR(MultiHead):
                         op_best - keep_prob >= self.edit_op_delta,
                     ),
                 )
-                fire = paddle.logical_and(
-                    fire, paddle.logical_or(op_t == 2, edit_mask)
-                )
+                fire = paddle.logical_and(fire, paddle.logical_or(op_t == 2, edit_mask))
                 op_ids = paddle.where(fire, op_t, paddle.zeros_like(op_t)).numpy()
         else:
             op_ids = paddle.argmax(op_logits, axis=2).numpy()
@@ -1037,15 +1374,15 @@ class MultiHeadEditRefineNRTR(MultiHead):
             last_prob = paddle.take_along_axis(
                 ap_probs, last_seed_t.unsqueeze(-1), axis=1
             ).squeeze(-1)
-            
+
             # For distinct character: require margin over last seed character.
             # For repeated character: require strong gate confidence.
             is_diff = (ap_ids_t != last_seed_t).astype("float32")
             margin_pass = paddle.logical_or(
                 is_diff * (ap_best - last_prob) >= self.append_delta_threshold,
-                paddle.logical_and(ap_ids_t == last_seed_t, gate_prob >= 0.70)
+                paddle.logical_and(ap_ids_t == last_seed_t, gate_prob >= 0.70),
             )
-            
+
             append_fire = (
                 (gate_prob >= self.append_gate_threshold).astype("int64").numpy()
                 * (ap_best >= self.edit_gate_threshold).astype("int64").numpy()
@@ -1055,9 +1392,11 @@ class MultiHeadEditRefineNRTR(MultiHead):
         refined = []
         for b, n in enumerate(lens_np):
             n = int(n)
-            seq = apply_edit_ops(seeds_np[b, :n].tolist(),
-                                 op_ids[b, :n].tolist(),
-                                 tok_ids[b, :n].tolist())
+            seq = apply_edit_ops(
+                seeds_np[b, :n].tolist(),
+                op_ids[b, :n].tolist(),
+                tok_ids[b, :n].tolist(),
+            )
             if append_fire is not None and n > 0 and append_fire[b] > 0:
                 seq = seq + [int(append_tok_ids[b])]
             refined.append(seq)
@@ -1083,8 +1422,14 @@ class MultiHeadEditRefineNRTR(MultiHead):
             "edit_tok_logits": edit_out["tok_logits"].numpy(),
             "edit_op_ids": op_ids,
             "edit_tok_ids": tok_ids,
-            "change_logits": edit_out["change_logits"].numpy() if "change_logits" in edit_out else None,
-            "change_probs": paddle.nn.functional.sigmoid(edit_out["change_logits"]).numpy() if "change_logits" in edit_out else None,
+            "change_logits": edit_out["change_logits"].numpy()
+            if "change_logits" in edit_out
+            else None,
+            "change_probs": paddle.nn.functional.sigmoid(
+                edit_out["change_logits"]
+            ).numpy()
+            if "change_logits" in edit_out
+            else None,
             "ctc_confs": confs.numpy() if confs is not None else None,
             "timesteps": timesteps.numpy() if timesteps is not None else None,
             "edit_append_fire": append_fire,
