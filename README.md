@@ -7,7 +7,7 @@
 
 An industrial-grade, non-autoregressive sequence refinement network that resolves CTC alignment drift, out-of-domain degradation, and character-confusion errors in water-meter digit recognition.
 
-> 🚀 **Quick Links:** [**Model Zoo & Google Drive Downloads (Checkpoints & Datasets)**](MODEL_ZOO_AND_DATA.md) | [**52-Seed Benchmark Results**](OPENSPEC_MULTISEED_RESULTS.md) | [**Visual Error Audit**](visual_error_audit.md) | [**Transfer Manifest**](WORKSPACE5_TRANSFER_MANIFEST.md)
+> 🚀 **Quick Links:** [**Master Experimental Leaderboard**](EXPERIMENTS_MASTER_LEADERBOARD.md) | [**Model Zoo & Google Drive Downloads (Checkpoints & Datasets)**](MODEL_ZOO_AND_DATA.md) | [**52-Seed Benchmark Results**](OPENSPEC_MULTISEED_RESULTS.md) | [**Visual Error Audit**](visual_error_audit.md) | [**Transfer Manifest**](WORKSPACE5_TRANSFER_MANIFEST.md)
 
 ---
 

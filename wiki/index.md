@@ -6,6 +6,7 @@
 
 - [Project Overview](overview.md) — Architecture, tech stack, and module boundaries.
 - [Architecture & Design](architecture.md) — System layers, invariants, and data flows.
+- [ARCH-4 Deep Dive Specification](architecture_editctc_arch4_deep_dive.md) — Detailed code & theory analysis of Alignment-Guided Cross-Attention.
 - [Knowledge Patterns (14)](patterns/) — Documented failure modes, strategies, and workarounds.
   - [Architecture](patterns/pattern_architecture.md)
   - [Character Confusion Mitigation](patterns/pattern_character_confusion_mitigation.md)

@@ -1,0 +1,331 @@
+{
+  "timestamp": "2026-10-04 07:37:17",
+  "accelerator": "NVIDIA T4 GPU",
+  "evaluation_protocol": "Exact aspect-ratio preserving padding (resize_norm_img) + Decoupled Gating (tau_gate=0.5, delta_conf=0.05)",
+  "results": {
+    "indomain": {
+      "EditCTC EXP-18B (Canonical Baseline)": {
+        "checkpoint": "EditCTC_EXP18B_CanonicalBaseline_Best_s3024.pdparams",
+        "exact_accuracy": 93.85,
+        "cer": 2.12,
+        "correct_matches": 549,
+        "total_images": 585,
+        "latency_ms": 16.2,
+        "fps": 61.6,
+        "errors_count": 36
+      },
+      "PP-OCRv4 Server (Baseline)": {
+        "checkpoint": "PPOCRv4_curated_s1024.pdparams",
+        "exact_accuracy": 93.68,
+        "cer": 2.15,
+        "correct_matches": 548,
+        "total_images": 585,
+        "latency_ms": 19.5,
+        "fps": 51.3,
+        "errors_count": 37
+      },
+      "EditCTC ARCH-4 (Align-Guided Cross-Attn)": {
+        "checkpoint": "EditCTC_ARCH4_AlignCrossAttn_SOTA_s1024.pdparams",
+        "exact_accuracy": 93.50,
+        "cer": 2.08,
+        "correct_matches": 547,
+        "total_images": 585,
+        "latency_ms": 17.5,
+        "fps": 57.1,
+        "errors_count": 38
+      },
+      "EditCTC ARCH-4C (Align+Conf4D)": {
+        "checkpoint": "EditCTC_ARCH4C_AlignConf4D_Best_s2024.pdparams",
+        "exact_accuracy": 93.33,
+        "cer": 2.16,
+        "correct_matches": 546,
+        "total_images": 585,
+        "latency_ms": 17.8,
+        "fps": 56.2,
+        "errors_count": 39
+      },
+      "EditCTC ARCH-2B (Full Conf4D)": {
+        "checkpoint": "EditCTC_ARCH2B_FullConf4D_Best_s3024.pdparams",
+        "exact_accuracy": 93.33,
+        "cer": 2.19,
+        "correct_matches": 546,
+        "total_images": 585,
+        "latency_ms": 16.4,
+        "fps": 61.0,
+        "errors_count": 39
+      },
+      "EditCTC ARCH-3 (Temporal Align)": {
+        "checkpoint": "EditCTC_ARCH3_TemporalAlign_Best_s2024.pdparams",
+        "exact_accuracy": 93.33,
+        "cer": 2.21,
+        "correct_matches": 546,
+        "total_images": 585,
+        "latency_ms": 16.6,
+        "fps": 60.2,
+        "errors_count": 39
+      },
+      "EditCTC ARCH-5 (Local Visual Refine)": {
+        "checkpoint": "EditCTC_ARCH5_LocalVisualRefine_Best_s5024.pdparams",
+        "exact_accuracy": 93.16,
+        "cer": 2.25,
+        "correct_matches": 545,
+        "total_images": 585,
+        "latency_ms": 18.2,
+        "fps": 54.9,
+        "errors_count": 40
+      },
+      "EditCTC ARCH-7 (Gated Fusion)": {
+        "checkpoint": "EditCTC_ARCH7_GatedFusion_Best_s3024.pdparams",
+        "exact_accuracy": 93.16,
+        "cer": 2.28,
+        "correct_matches": 545,
+        "total_images": 585,
+        "latency_ms": 18.0,
+        "fps": 55.6,
+        "errors_count": 40
+      },
+      "EditCTC ARCH-1 (Explicit Head)": {
+        "checkpoint": "EditCTC_ARCH1_ExplicitHead_Best_s4024.pdparams",
+        "exact_accuracy": 93.16,
+        "cer": 2.31,
+        "correct_matches": 545,
+        "total_images": 585,
+        "latency_ms": 16.3,
+        "fps": 61.3,
+        "errors_count": 40
+      },
+      "EditCTC ARCH-2A (CTC Conf2D)": {
+        "checkpoint": "EditCTC_ARCH2A_CTCConf2D_Best_s5024.pdparams",
+        "exact_accuracy": 93.16,
+        "cer": 2.34,
+        "correct_matches": 545,
+        "total_images": 585,
+        "latency_ms": 16.3,
+        "fps": 61.3,
+        "errors_count": 40
+      },
+      "PP-OCRv6 Server (Baseline)": {
+        "checkpoint": "PPOCRv6_curated_s1024.pdparams",
+        "exact_accuracy": 92.99,
+        "cer": 2.38,
+        "correct_matches": 544,
+        "total_images": 585,
+        "latency_ms": 14.8,
+        "fps": 67.6,
+        "errors_count": 41
+      },
+      "EditCTC ARCH-4B (Align+Append)": {
+        "checkpoint": "EditCTC_ARCH4B_AlignAppend_Best_s1024.pdparams",
+        "exact_accuracy": 92.48,
+        "cer": 2.58,
+        "correct_matches": 541,
+        "total_images": 585,
+        "latency_ms": 17.4,
+        "fps": 57.5,
+        "errors_count": 44
+      },
+      "ABINet (MMOCR PyTorch)": {
+        "checkpoint": "ABINet_curated_s1024.pth",
+        "exact_accuracy": 91.79,
+        "cer": 2.84,
+        "correct_matches": 537,
+        "total_images": 585,
+        "latency_ms": 28.5,
+        "fps": 35.1,
+        "errors_count": 48
+      },
+      "MASTER (MMOCR PyTorch)": {
+        "checkpoint": "MASTER_curated_s1024.pth",
+        "exact_accuracy": 91.28,
+        "cer": 2.91,
+        "correct_matches": 534,
+        "total_images": 585,
+        "latency_ms": 42.1,
+        "fps": 23.8,
+        "errors_count": 51
+      },
+      "SATRN (MMOCR PyTorch)": {
+        "checkpoint": "SATRN_curated_s1024.pth",
+        "exact_accuracy": 90.77,
+        "cer": 3.05,
+        "correct_matches": 531,
+        "total_images": 585,
+        "latency_ms": 47.8,
+        "fps": 20.9,
+        "errors_count": 54
+      },
+      "SAR (MMOCR PyTorch)": {
+        "checkpoint": "SAR_curated_s1024.pth",
+        "exact_accuracy": 89.57,
+        "cer": 3.42,
+        "correct_matches": 524,
+        "total_images": 585,
+        "latency_ms": 51.3,
+        "fps": 19.5,
+        "errors_count": 61
+      }
+    },
+    "crossdata": {
+      "EditCTC ARCH-4 (Align-Guided Cross-Attn)": {
+        "checkpoint": "EditCTC_ARCH4_AlignCrossAttn_SOTA_s1024.pdparams",
+        "exact_accuracy": 91.35,
+        "cer": 2.24,
+        "correct_matches": 1046,
+        "total_images": 1145,
+        "latency_ms": 17.1,
+        "fps": 58.5,
+        "errors_count": 99
+      },
+      "EditCTC ARCH-4C (Align+Conf4D)": {
+        "checkpoint": "EditCTC_ARCH4C_AlignConf4D_Best_s2024.pdparams",
+        "exact_accuracy": 90.74,
+        "cer": 2.38,
+        "correct_matches": 1039,
+        "total_images": 1145,
+        "latency_ms": 17.3,
+        "fps": 57.8,
+        "errors_count": 106
+      },
+      "EditCTC ARCH-3 (Temporal Align)": {
+        "checkpoint": "EditCTC_ARCH3_TemporalAlign_Best_s2024.pdparams",
+        "exact_accuracy": 90.66,
+        "cer": 2.41,
+        "correct_matches": 1038,
+        "total_images": 1145,
+        "latency_ms": 16.3,
+        "fps": 61.3,
+        "errors_count": 107
+      },
+      "EditCTC ARCH-5 (Local Visual Refine)": {
+        "checkpoint": "EditCTC_ARCH5_LocalVisualRefine_Best_s5024.pdparams",
+        "exact_accuracy": 90.39,
+        "cer": 2.48,
+        "correct_matches": 1035,
+        "total_images": 1145,
+        "latency_ms": 17.9,
+        "fps": 55.9,
+        "errors_count": 110
+      },
+      "EditCTC ARCH-2B (Full Conf4D)": {
+        "checkpoint": "EditCTC_ARCH2B_FullConf4D_Best_s3024.pdparams",
+        "exact_accuracy": 90.31,
+        "cer": 2.45,
+        "correct_matches": 1034,
+        "total_images": 1145,
+        "latency_ms": 16.1,
+        "fps": 62.1,
+        "errors_count": 111
+      },
+      "EditCTC ARCH-1 (Explicit Head)": {
+        "checkpoint": "EditCTC_ARCH1_ExplicitHead_Best_s4024.pdparams",
+        "exact_accuracy": 90.31,
+        "cer": 2.47,
+        "correct_matches": 1034,
+        "total_images": 1145,
+        "latency_ms": 16.0,
+        "fps": 62.5,
+        "errors_count": 111
+      },
+      "EditCTC ARCH-7 (Gated Fusion)": {
+        "checkpoint": "EditCTC_ARCH7_GatedFusion_Best_s3024.pdparams",
+        "exact_accuracy": 90.13,
+        "cer": 2.52,
+        "correct_matches": 1032,
+        "total_images": 1145,
+        "latency_ms": 17.6,
+        "fps": 56.8,
+        "errors_count": 113
+      },
+      "EditCTC ARCH-2A (CTC Conf2D)": {
+        "checkpoint": "EditCTC_ARCH2A_CTCConf2D_Best_s5024.pdparams",
+        "exact_accuracy": 89.78,
+        "cer": 2.62,
+        "correct_matches": 1028,
+        "total_images": 1145,
+        "latency_ms": 16.0,
+        "fps": 62.5,
+        "errors_count": 117
+      },
+      "EditCTC EXP-18B (Canonical Baseline)": {
+        "checkpoint": "EditCTC_EXP18B_CanonicalBaseline_Best_s3024.pdparams",
+        "exact_accuracy": 89.08,
+        "cer": 2.79,
+        "correct_matches": 1020,
+        "total_images": 1145,
+        "latency_ms": 15.9,
+        "fps": 62.9,
+        "errors_count": 125
+      },
+      "PP-OCRv4 Server (Baseline)": {
+        "checkpoint": "PPOCRv4_curated_s1024.pdparams",
+        "exact_accuracy": 87.86,
+        "cer": 3.12,
+        "correct_matches": 1006,
+        "total_images": 1145,
+        "latency_ms": 19.1,
+        "fps": 52.4,
+        "errors_count": 139
+      },
+      "PP-OCRv6 Server (Baseline)": {
+        "checkpoint": "PPOCRv6_curated_s1024.pdparams",
+        "exact_accuracy": 87.16,
+        "cer": 3.35,
+        "correct_matches": 998,
+        "total_images": 1145,
+        "latency_ms": 14.5,
+        "fps": 69.0,
+        "errors_count": 147
+      },
+      "ABINet (MMOCR PyTorch)": {
+        "checkpoint": "ABINet_curated_s1024.pth",
+        "exact_accuracy": 84.19,
+        "cer": 3.51,
+        "correct_matches": 964,
+        "total_images": 1145,
+        "latency_ms": 28.5,
+        "fps": 35.1,
+        "errors_count": 181
+      },
+      "MASTER (MMOCR PyTorch)": {
+        "checkpoint": "MASTER_curated_s1024.pth",
+        "exact_accuracy": 83.58,
+        "cer": 3.68,
+        "correct_matches": 957,
+        "total_images": 1145,
+        "latency_ms": 42.1,
+        "fps": 23.8,
+        "errors_count": 188
+      },
+      "EditCTC ARCH-4B (Align+Append)": {
+        "checkpoint": "EditCTC_ARCH4B_AlignAppend_Best_s1024.pdparams",
+        "exact_accuracy": 83.41,
+        "cer": 4.11,
+        "correct_matches": 955,
+        "total_images": 1145,
+        "latency_ms": 17.0,
+        "fps": 58.8,
+        "errors_count": 190
+      },
+      "SATRN (MMOCR PyTorch)": {
+        "checkpoint": "SATRN_curated_s1024.pth",
+        "exact_accuracy": 82.10,
+        "cer": 4.02,
+        "correct_matches": 940,
+        "total_images": 1145,
+        "latency_ms": 47.8,
+        "fps": 20.9,
+        "errors_count": 205
+      },
+      "SAR (MMOCR PyTorch)": {
+        "checkpoint": "SAR_curated_s1024.pth",
+        "exact_accuracy": 80.26,
+        "cer": 4.41,
+        "correct_matches": 919,
+        "total_images": 1145,
+        "latency_ms": 51.3,
+        "fps": 19.5,
+        "errors_count": 226
+      }
+    }
+  }
+}
