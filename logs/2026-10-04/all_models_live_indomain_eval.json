@@ -1,0 +1,728 @@
+{
+  "eval_title": "Master Live Checkpoint Evaluation (Indomain Curated 585)",
+  "timestamp": "2026-10-04 06:36:16",
+  "accelerator": "NVIDIA T4 GPU",
+  "total_samples": 585,
+  "results": {
+    "EditCTC EXP-18B (Canonical Baseline)": {
+      "checkpoint_file": "EditCTC_EXP18B_CanonicalBaseline_Best_s3024.pdparams",
+      "exact_accuracy": 88.38,
+      "cer": 3.65,
+      "correct_matches": 517,
+      "total_images": 585,
+      "fps": 4.5,
+      "latency_ms": 222.2,
+      "errors_count": 68,
+      "sample_errors": [
+        {
+          "image": "crop_002895.jpg",
+          "ground_truth": "04007",
+          "prediction": "04077",
+          "ctc_prediction": "04077"
+        },
+        {
+          "image": "crop_002901.jpg",
+          "ground_truth": "003745",
+          "prediction": "00374",
+          "ctc_prediction": "00374"
+        },
+        {
+          "image": "crop_002902.jpg",
+          "ground_truth": "0706",
+          "prediction": "0106",
+          "ctc_prediction": "0106"
+        },
+        {
+          "image": "crop_002931.jpg",
+          "ground_truth": "1970",
+          "prediction": "0970",
+          "ctc_prediction": "0970"
+        },
+        {
+          "image": "crop_002935.jpg",
+          "ground_truth": "1294",
+          "prediction": "1284",
+          "ctc_prediction": "1284"
+        },
+        {
+          "image": "crop_002953.jpg",
+          "ground_truth": "03710",
+          "prediction": "03700",
+          "ctc_prediction": "03700"
+        },
+        {
+          "image": "crop_002954.jpg",
+          "ground_truth": "42703",
+          "prediction": "4270",
+          "ctc_prediction": "4270"
+        },
+        {
+          "image": "crop_002960.jpg",
+          "ground_truth": "1397",
+          "prediction": "11397",
+          "ctc_prediction": "11397"
+        },
+        {
+          "image": "crop_003028.jpg",
+          "ground_truth": "0307",
+          "prediction": "1307",
+          "ctc_prediction": "1307"
+        },
+        {
+          "image": "crop_003063.jpg",
+          "ground_truth": "1722",
+          "prediction": "11722",
+          "ctc_prediction": "11722"
+        }
+      ]
+    },
+    "EditCTC ARCH-4 (Align-Guided Cross-Attn)": {
+      "checkpoint_file": "EditCTC_ARCH4_AlignCrossAttn_SOTA_s1024.pdparams",
+      "exact_accuracy": 89.23,
+      "cer": 3.35,
+      "correct_matches": 522,
+      "total_images": 585,
+      "fps": 4.3,
+      "latency_ms": 232.2,
+      "errors_count": 63,
+      "sample_errors": [
+        {
+          "image": "crop_002901.jpg",
+          "ground_truth": "003745",
+          "prediction": "00374",
+          "ctc_prediction": "00374"
+        },
+        {
+          "image": "crop_002902.jpg",
+          "ground_truth": "0706",
+          "prediction": "0106",
+          "ctc_prediction": "0106"
+        },
+        {
+          "image": "crop_002931.jpg",
+          "ground_truth": "1970",
+          "prediction": "0970",
+          "ctc_prediction": "0970"
+        },
+        {
+          "image": "crop_002935.jpg",
+          "ground_truth": "1294",
+          "prediction": "1284",
+          "ctc_prediction": "1284"
+        },
+        {
+          "image": "crop_002954.jpg",
+          "ground_truth": "42703",
+          "prediction": "4270",
+          "ctc_prediction": "4270"
+        },
+        {
+          "image": "crop_002960.jpg",
+          "ground_truth": "1397",
+          "prediction": "11397",
+          "ctc_prediction": "11397"
+        },
+        {
+          "image": "crop_002968.jpg",
+          "ground_truth": "8089",
+          "prediction": "0089",
+          "ctc_prediction": "0089"
+        },
+        {
+          "image": "crop_003063.jpg",
+          "ground_truth": "1722",
+          "prediction": "11722",
+          "ctc_prediction": "11722"
+        },
+        {
+          "image": "crop_003080.jpg",
+          "ground_truth": "0112",
+          "prediction": "0115",
+          "ctc_prediction": "0115"
+        },
+        {
+          "image": "crop_003085.jpg",
+          "ground_truth": "3272",
+          "prediction": "3212",
+          "ctc_prediction": "3212"
+        }
+      ]
+    },
+    "EditCTC ARCH-4C (Align+Conf4D)": {
+      "checkpoint_file": "EditCTC_ARCH4C_AlignConf4D_Best_s2024.pdparams",
+      "exact_accuracy": 89.4,
+      "cer": 3.28,
+      "correct_matches": 523,
+      "total_images": 585,
+      "fps": 4.5,
+      "latency_ms": 222.6,
+      "errors_count": 62,
+      "sample_errors": [
+        {
+          "image": "crop_002901.jpg",
+          "ground_truth": "003745",
+          "prediction": "00374",
+          "ctc_prediction": "00374"
+        },
+        {
+          "image": "crop_002902.jpg",
+          "ground_truth": "0706",
+          "prediction": "0106",
+          "ctc_prediction": "0106"
+        },
+        {
+          "image": "crop_002931.jpg",
+          "ground_truth": "1970",
+          "prediction": "0970",
+          "ctc_prediction": "0970"
+        },
+        {
+          "image": "crop_002935.jpg",
+          "ground_truth": "1294",
+          "prediction": "1284",
+          "ctc_prediction": "1284"
+        },
+        {
+          "image": "crop_002954.jpg",
+          "ground_truth": "42703",
+          "prediction": "4270",
+          "ctc_prediction": "4270"
+        },
+        {
+          "image": "crop_002960.jpg",
+          "ground_truth": "1397",
+          "prediction": "11397",
+          "ctc_prediction": "11397"
+        },
+        {
+          "image": "crop_003063.jpg",
+          "ground_truth": "1722",
+          "prediction": "11722",
+          "ctc_prediction": "11722"
+        },
+        {
+          "image": "crop_003085.jpg",
+          "ground_truth": "3272",
+          "prediction": "3212",
+          "ctc_prediction": "3212"
+        },
+        {
+          "image": "crop_003105.jpg",
+          "ground_truth": "0027",
+          "prediction": "00027",
+          "ctc_prediction": "00027"
+        },
+        {
+          "image": "crop_003113.jpg",
+          "ground_truth": "0018",
+          "prediction": "00118",
+          "ctc_prediction": "00118"
+        }
+      ]
+    },
+    "EditCTC ARCH-2B (Full Conf4D)": {
+      "checkpoint_file": "EditCTC_ARCH2B_FullConf4D_Best_s3024.pdparams",
+      "exact_accuracy": 89.74,
+      "cer": 3.13,
+      "correct_matches": 525,
+      "total_images": 585,
+      "fps": 4.6,
+      "latency_ms": 219.6,
+      "errors_count": 60,
+      "sample_errors": [
+        {
+          "image": "crop_002901.jpg",
+          "ground_truth": "003745",
+          "prediction": "00374",
+          "ctc_prediction": "00374"
+        },
+        {
+          "image": "crop_002902.jpg",
+          "ground_truth": "0706",
+          "prediction": "0106",
+          "ctc_prediction": "0106"
+        },
+        {
+          "image": "crop_002931.jpg",
+          "ground_truth": "1970",
+          "prediction": "0970",
+          "ctc_prediction": "0970"
+        },
+        {
+          "image": "crop_002935.jpg",
+          "ground_truth": "1294",
+          "prediction": "1284",
+          "ctc_prediction": "1284"
+        },
+        {
+          "image": "crop_002954.jpg",
+          "ground_truth": "42703",
+          "prediction": "4270",
+          "ctc_prediction": "4270"
+        },
+        {
+          "image": "crop_002960.jpg",
+          "ground_truth": "1397",
+          "prediction": "01397",
+          "ctc_prediction": "01397"
+        },
+        {
+          "image": "crop_003063.jpg",
+          "ground_truth": "1722",
+          "prediction": "11722",
+          "ctc_prediction": "11722"
+        },
+        {
+          "image": "crop_003080.jpg",
+          "ground_truth": "0112",
+          "prediction": "0115",
+          "ctc_prediction": "0115"
+        },
+        {
+          "image": "crop_003085.jpg",
+          "ground_truth": "3272",
+          "prediction": "3212",
+          "ctc_prediction": "3212"
+        },
+        {
+          "image": "crop_003105.jpg",
+          "ground_truth": "0027",
+          "prediction": "00027",
+          "ctc_prediction": "00027"
+        }
+      ]
+    },
+    "EditCTC ARCH-3 (Temporal Align)": {
+      "checkpoint_file": "EditCTC_ARCH3_TemporalAlign_Best_s2024.pdparams",
+      "exact_accuracy": 89.06,
+      "cer": 3.35,
+      "correct_matches": 521,
+      "total_images": 585,
+      "fps": 4.5,
+      "latency_ms": 224.6,
+      "errors_count": 64,
+      "sample_errors": [
+        {
+          "image": "crop_002901.jpg",
+          "ground_truth": "003745",
+          "prediction": "00374",
+          "ctc_prediction": "00374"
+        },
+        {
+          "image": "crop_002902.jpg",
+          "ground_truth": "0706",
+          "prediction": "0106",
+          "ctc_prediction": "0106"
+        },
+        {
+          "image": "crop_002931.jpg",
+          "ground_truth": "1970",
+          "prediction": "0970",
+          "ctc_prediction": "0970"
+        },
+        {
+          "image": "crop_002934.jpg",
+          "ground_truth": "0507",
+          "prediction": "0505",
+          "ctc_prediction": "0505"
+        },
+        {
+          "image": "crop_002935.jpg",
+          "ground_truth": "1294",
+          "prediction": "1284",
+          "ctc_prediction": "1284"
+        },
+        {
+          "image": "crop_002954.jpg",
+          "ground_truth": "42703",
+          "prediction": "4270",
+          "ctc_prediction": "4270"
+        },
+        {
+          "image": "crop_002960.jpg",
+          "ground_truth": "1397",
+          "prediction": "11397",
+          "ctc_prediction": "11397"
+        },
+        {
+          "image": "crop_002968.jpg",
+          "ground_truth": "8089",
+          "prediction": "0089",
+          "ctc_prediction": "0089"
+        },
+        {
+          "image": "crop_003063.jpg",
+          "ground_truth": "1722",
+          "prediction": "11722",
+          "ctc_prediction": "11722"
+        },
+        {
+          "image": "crop_003085.jpg",
+          "ground_truth": "3272",
+          "prediction": "3212",
+          "ctc_prediction": "3212"
+        }
+      ]
+    },
+    "EditCTC ARCH-5 (Local Visual Refine)": {
+      "checkpoint_file": "EditCTC_ARCH5_LocalVisualRefine_Best_s5024.pdparams",
+      "exact_accuracy": 89.23,
+      "cer": 3.31,
+      "correct_matches": 522,
+      "total_images": 585,
+      "fps": 4.5,
+      "latency_ms": 222.6,
+      "errors_count": 63,
+      "sample_errors": [
+        {
+          "image": "crop_002901.jpg",
+          "ground_truth": "003745",
+          "prediction": "00374",
+          "ctc_prediction": "00374"
+        },
+        {
+          "image": "crop_002902.jpg",
+          "ground_truth": "0706",
+          "prediction": "0106",
+          "ctc_prediction": "0106"
+        },
+        {
+          "image": "crop_002931.jpg",
+          "ground_truth": "1970",
+          "prediction": "0970",
+          "ctc_prediction": "0970"
+        },
+        {
+          "image": "crop_002935.jpg",
+          "ground_truth": "1294",
+          "prediction": "1284",
+          "ctc_prediction": "1284"
+        },
+        {
+          "image": "crop_002954.jpg",
+          "ground_truth": "42703",
+          "prediction": "4270",
+          "ctc_prediction": "4270"
+        },
+        {
+          "image": "crop_002960.jpg",
+          "ground_truth": "1397",
+          "prediction": "11397",
+          "ctc_prediction": "11397"
+        },
+        {
+          "image": "crop_003063.jpg",
+          "ground_truth": "1722",
+          "prediction": "11722",
+          "ctc_prediction": "11722"
+        },
+        {
+          "image": "crop_003080.jpg",
+          "ground_truth": "0112",
+          "prediction": "0115",
+          "ctc_prediction": "0115"
+        },
+        {
+          "image": "crop_003085.jpg",
+          "ground_truth": "3272",
+          "prediction": "3212",
+          "ctc_prediction": "3212"
+        },
+        {
+          "image": "crop_003105.jpg",
+          "ground_truth": "0027",
+          "prediction": "00027",
+          "ctc_prediction": "00027"
+        }
+      ]
+    },
+    "EditCTC ARCH-7 (Gated Fusion)": {
+      "checkpoint_file": "EditCTC_ARCH7_GatedFusion_Best_s3024.pdparams",
+      "exact_accuracy": 89.74,
+      "cer": 3.17,
+      "correct_matches": 525,
+      "total_images": 585,
+      "fps": 4.5,
+      "latency_ms": 221.3,
+      "errors_count": 60,
+      "sample_errors": [
+        {
+          "image": "crop_002901.jpg",
+          "ground_truth": "003745",
+          "prediction": "00374",
+          "ctc_prediction": "00374"
+        },
+        {
+          "image": "crop_002902.jpg",
+          "ground_truth": "0706",
+          "prediction": "0106",
+          "ctc_prediction": "0106"
+        },
+        {
+          "image": "crop_002931.jpg",
+          "ground_truth": "1970",
+          "prediction": "0970",
+          "ctc_prediction": "0970"
+        },
+        {
+          "image": "crop_002935.jpg",
+          "ground_truth": "1294",
+          "prediction": "1284",
+          "ctc_prediction": "1284"
+        },
+        {
+          "image": "crop_002954.jpg",
+          "ground_truth": "42703",
+          "prediction": "4270",
+          "ctc_prediction": "4270"
+        },
+        {
+          "image": "crop_002960.jpg",
+          "ground_truth": "1397",
+          "prediction": "11397",
+          "ctc_prediction": "11397"
+        },
+        {
+          "image": "crop_003063.jpg",
+          "ground_truth": "1722",
+          "prediction": "11722",
+          "ctc_prediction": "11722"
+        },
+        {
+          "image": "crop_003080.jpg",
+          "ground_truth": "0112",
+          "prediction": "0115",
+          "ctc_prediction": "0115"
+        },
+        {
+          "image": "crop_003085.jpg",
+          "ground_truth": "3272",
+          "prediction": "3212",
+          "ctc_prediction": "3212"
+        },
+        {
+          "image": "crop_003105.jpg",
+          "ground_truth": "0027",
+          "prediction": "00027",
+          "ctc_prediction": "00027"
+        }
+      ]
+    },
+    "EditCTC ARCH-1 (Explicit Head)": {
+      "checkpoint_file": "EditCTC_ARCH1_ExplicitHead_Best_s4024.pdparams",
+      "exact_accuracy": 86.84,
+      "cer": 3.98,
+      "correct_matches": 508,
+      "total_images": 585,
+      "fps": 4.5,
+      "latency_ms": 223.4,
+      "errors_count": 77,
+      "sample_errors": [
+        {
+          "image": "crop_002901.jpg",
+          "ground_truth": "003745",
+          "prediction": "00374",
+          "ctc_prediction": "00374"
+        },
+        {
+          "image": "crop_002902.jpg",
+          "ground_truth": "0706",
+          "prediction": "0106",
+          "ctc_prediction": "0106"
+        },
+        {
+          "image": "crop_002931.jpg",
+          "ground_truth": "1970",
+          "prediction": "0970",
+          "ctc_prediction": "0970"
+        },
+        {
+          "image": "crop_002935.jpg",
+          "ground_truth": "1294",
+          "prediction": "1284",
+          "ctc_prediction": "1284"
+        },
+        {
+          "image": "crop_002954.jpg",
+          "ground_truth": "42703",
+          "prediction": "4070",
+          "ctc_prediction": "4070"
+        },
+        {
+          "image": "crop_002960.jpg",
+          "ground_truth": "1397",
+          "prediction": "11397",
+          "ctc_prediction": "11397"
+        },
+        {
+          "image": "crop_002969.jpg",
+          "ground_truth": "0625",
+          "prediction": "0025",
+          "ctc_prediction": "0025"
+        },
+        {
+          "image": "crop_002983.jpg",
+          "ground_truth": "2256",
+          "prediction": "2556",
+          "ctc_prediction": "2556"
+        },
+        {
+          "image": "crop_002986.jpg",
+          "ground_truth": "2960",
+          "prediction": "2060",
+          "ctc_prediction": "2060"
+        },
+        {
+          "image": "crop_003000.jpg",
+          "ground_truth": "1912",
+          "prediction": "1112",
+          "ctc_prediction": "1112"
+        }
+      ]
+    },
+    "EditCTC ARCH-2A (CTC Conf2D)": {
+      "checkpoint_file": "EditCTC_ARCH2A_CTCConf2D_Best_s5024.pdparams",
+      "exact_accuracy": 85.3,
+      "cer": 4.34,
+      "correct_matches": 499,
+      "total_images": 585,
+      "fps": 4.6,
+      "latency_ms": 217.7,
+      "errors_count": 86,
+      "sample_errors": [
+        {
+          "image": "crop_002895.jpg",
+          "ground_truth": "04007",
+          "prediction": "04077",
+          "ctc_prediction": "04077"
+        },
+        {
+          "image": "crop_002900.jpg",
+          "ground_truth": "2538",
+          "prediction": "2338",
+          "ctc_prediction": "2338"
+        },
+        {
+          "image": "crop_002901.jpg",
+          "ground_truth": "003745",
+          "prediction": "00374",
+          "ctc_prediction": "00374"
+        },
+        {
+          "image": "crop_002902.jpg",
+          "ground_truth": "0706",
+          "prediction": "0106",
+          "ctc_prediction": "0106"
+        },
+        {
+          "image": "crop_002910.jpg",
+          "ground_truth": "01953",
+          "prediction": "01553",
+          "ctc_prediction": "01553"
+        },
+        {
+          "image": "crop_002931.jpg",
+          "ground_truth": "1970",
+          "prediction": "0970",
+          "ctc_prediction": "0970"
+        },
+        {
+          "image": "crop_002935.jpg",
+          "ground_truth": "1294",
+          "prediction": "1284",
+          "ctc_prediction": "1284"
+        },
+        {
+          "image": "crop_002954.jpg",
+          "ground_truth": "42703",
+          "prediction": "4273",
+          "ctc_prediction": "4273"
+        },
+        {
+          "image": "crop_002960.jpg",
+          "ground_truth": "1397",
+          "prediction": "11397",
+          "ctc_prediction": "11397"
+        },
+        {
+          "image": "crop_002968.jpg",
+          "ground_truth": "8089",
+          "prediction": "0089",
+          "ctc_prediction": "0089"
+        }
+      ]
+    },
+    "EditCTC ARCH-4B (Align+Append)": {
+      "checkpoint_file": "EditCTC_ARCH4B_AlignAppend_Best_s1024.pdparams",
+      "exact_accuracy": 89.74,
+      "cer": 3.24,
+      "correct_matches": 525,
+      "total_images": 585,
+      "fps": 4.6,
+      "latency_ms": 215.3,
+      "errors_count": 60,
+      "sample_errors": [
+        {
+          "image": "crop_002901.jpg",
+          "ground_truth": "003745",
+          "prediction": "00374",
+          "ctc_prediction": "00374"
+        },
+        {
+          "image": "crop_002902.jpg",
+          "ground_truth": "0706",
+          "prediction": "0106",
+          "ctc_prediction": "0106"
+        },
+        {
+          "image": "crop_002931.jpg",
+          "ground_truth": "1970",
+          "prediction": "0970",
+          "ctc_prediction": "0970"
+        },
+        {
+          "image": "crop_002935.jpg",
+          "ground_truth": "1294",
+          "prediction": "1284",
+          "ctc_prediction": "1284"
+        },
+        {
+          "image": "crop_002954.jpg",
+          "ground_truth": "42703",
+          "prediction": "4270",
+          "ctc_prediction": "4270"
+        },
+        {
+          "image": "crop_002960.jpg",
+          "ground_truth": "1397",
+          "prediction": "11397",
+          "ctc_prediction": "11397"
+        },
+        {
+          "image": "crop_002968.jpg",
+          "ground_truth": "8089",
+          "prediction": "0089",
+          "ctc_prediction": "0089"
+        },
+        {
+          "image": "crop_003063.jpg",
+          "ground_truth": "1722",
+          "prediction": "11722",
+          "ctc_prediction": "11722"
+        },
+        {
+          "image": "crop_003080.jpg",
+          "ground_truth": "0112",
+          "prediction": "0115",
+          "ctc_prediction": "0115"
+        },
+        {
+          "image": "crop_003085.jpg",
+          "ground_truth": "3272",
+          "prediction": "3212",
+          "ctc_prediction": "3212"
+        }
+      ]
+    }
+  }
+}
