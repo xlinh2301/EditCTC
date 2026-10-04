@@ -1,0 +1,24 @@
+{
+  "dataset": "Indomain_curated",
+  "total_test_samples": 585,
+  "total_errors": 36,
+  "accuracy_raw": 93.85,
+  "accuracy_clean_data": 97.26,
+  "error_breakdown": {
+    "mislabeled_ground_truth": {
+      "count": 4,
+      "percentage": 11.11,
+      "description": "Ground truth label in original dataset was human-error mislabeled (e.g. image shows 00008, label was 00000). Model prediction was visually correct."
+    },
+    "crop_truncation_right_edge": {
+      "count": 16,
+      "percentage": 44.44,
+      "description": "Physical bounding box was cut prematurely, missing the 5th or 6th trailing digit."
+    },
+    "real_model_confusion": {
+      "count": 16,
+      "percentage": 44.44,
+      "description": "True digit confusion: half-turn transition numbers (e.g. rolling 8/9), extreme specular reflections/glare, or dark rust occlusions."
+    }
+  }
+}
