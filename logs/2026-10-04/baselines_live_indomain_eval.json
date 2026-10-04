@@ -1,0 +1,110 @@
+{
+  "eval_title": "Baseline Models Live GPU T4 Benchmark (Indomain Curated 585)",
+  "timestamp": "2026-10-04 06:59:47",
+  "accelerator": "NVIDIA T4 GPU",
+  "total_samples": 585,
+  "results": {
+    "PP-OCRv6 Server (Baseline)": {
+      "checkpoint": "PPOCRv6_curated_s1024.pdparams",
+      "exact_accuracy": 87.35,
+      "cer": 4.09,
+      "correct_matches": 511,
+      "total_images": 585,
+      "latency_ms": 81.2,
+      "fps": 12.3,
+      "errors_count": 74,
+      "sample_errors": [
+        {
+          "image": "crop_002895.jpg",
+          "ground_truth": "04007",
+          "prediction": "01007"
+        },
+        {
+          "image": "crop_002901.jpg",
+          "ground_truth": "003745",
+          "prediction": "00374"
+        },
+        {
+          "image": "crop_002905.jpg",
+          "ground_truth": "1571",
+          "prediction": "157"
+        },
+        {
+          "image": "crop_002913.jpg",
+          "ground_truth": "1347",
+          "prediction": "134"
+        },
+        {
+          "image": "crop_002931.jpg",
+          "ground_truth": "1970",
+          "prediction": "0970"
+        },
+        {
+          "image": "crop_002933.jpg",
+          "ground_truth": "1310",
+          "prediction": "0310"
+        },
+        {
+          "image": "crop_002935.jpg",
+          "ground_truth": "1294",
+          "prediction": "1284"
+        },
+        {
+          "image": "crop_002940.jpg",
+          "ground_truth": "00587",
+          "prediction": "005872"
+        },
+        {
+          "image": "crop_002954.jpg",
+          "ground_truth": "42703",
+          "prediction": "4270"
+        },
+        {
+          "image": "crop_002980.jpg",
+          "ground_truth": "1590",
+          "prediction": "590"
+        }
+      ]
+    },
+    "ABINet (MMOCR PyTorch)": {
+      "checkpoint": "ABINet_curated_s1024.pth",
+      "exact_accuracy": 91.79,
+      "cer": 2.84,
+      "correct_matches": 537,
+      "total_images": 585,
+      "latency_ms": 28.5,
+      "fps": 35.1,
+      "errors_count": 48
+    },
+    "MASTER (MMOCR PyTorch)": {
+      "checkpoint": "MASTER_curated_s1024.pth",
+      "exact_accuracy": 91.28,
+      "cer": 2.91,
+      "correct_matches": 534,
+      "total_images": 585,
+      "latency_ms": 42.1,
+      "fps": 23.8,
+      "errors_count": 51
+    },
+    "SATRN (MMOCR PyTorch)": {
+      "checkpoint": "SATRN_curated_s1024.pth",
+      "exact_accuracy": 90.77,
+      "cer": 3.05,
+      "correct_matches": 531,
+      "total_images": 585,
+      "latency_ms": 47.8,
+      "fps": 20.9,
+      "errors_count": 54
+    },
+    "SAR (MMOCR PyTorch)": {
+      "checkpoint": "SAR_curated_s1024.pth",
+      "exact_accuracy": 89.57,
+      "cer": 3.42,
+      "correct_matches": 524,
+      "total_images": 585,
+      "latency_ms": 51.3,
+      "fps": 19.5,
+      "errors_count": 61
+    }
+  }
+}
