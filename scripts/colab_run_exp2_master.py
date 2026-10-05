@@ -13,6 +13,10 @@ print("=" * 70)
 print("🚀 STARTING EDITCTC EXP-2 (ARCH-9 ADAPTIVE SPATIAL SIGMA) MASTER RUNNER")
 print("=" * 70)
 
+# Detect Python interpreter with Paddle GPU
+PYTHON_EXEC = "/content/paddle_env/bin/python" if os.path.exists("/content/paddle_env/bin/python") else sys.executable
+print(f"Using Python runtime: {PYTHON_EXEC}")
+
 # 1. Mount Google Drive if not mounted
 print("\n[1/6] Checking Google Drive...")
 if not os.path.exists('/content/drive/MyDrive'):
@@ -21,7 +25,7 @@ if not os.path.exists('/content/drive/MyDrive'):
         drive.mount('/content/drive', force_remount=False)
         print("Google Drive mounted successfully.")
     except Exception as e:
-        print("Drive mount exception:", e)
+        print("Drive mount notice:", e)
 
 # 2. Sync Repository
 print("\n[2/6] Syncing EditCTC repository (branch exp/arch9-adaptive-spatial-bias)...")
@@ -49,7 +53,7 @@ print(f"Crossdata path: {CROSSDATA_DIR}")
 
 # 4. Verify GPU & Unit Tests
 print("\n[4/6] Verifying GPU & Running Unit Tests...")
-subprocess.run([sys.executable, "-m", "unittest", "tests/test_arch9_adaptive_spatial_bias.py"], check=True)
+subprocess.run([PYTHON_EXEC, "-m", "unittest", "tests/test_arch9_adaptive_spatial_bias.py"], check=True)
 
 # 5. Launch Training (Fine-tuning beta from SOTA checkpoint)
 print("\n[5/6] Launching ARCH-9 Training (Exp-2)...")
@@ -58,7 +62,7 @@ PRETRAINED_MODEL = "/content/drive/MyDrive/research/EditCTC/DATA/Checkpoints/Edi
 SAVE_MODEL_DIR = "/content/drive/MyDrive/research/EditCTC/DATA/Checkpoints/EditCTC_ARCH9_AdaptiveSpatial_s1024"
 
 train_cmd = [
-    sys.executable, "tools/train.py",
+    PYTHON_EXEC, "tools/train.py",
     "-c", CONFIG_PATH,
     "-o", f"Global.pretrained_model={PRETRAINED_MODEL}",
     "-o", f"Global.save_model_dir={SAVE_MODEL_DIR}",
@@ -76,7 +80,7 @@ EVAL_CKPT = f"{SAVE_MODEL_DIR}/best_accuracy" if os.path.exists(f"{SAVE_MODEL_DI
 
 def eval_dataset(name, data_dir, label_file):
     cmd = [
-        sys.executable, "tools/eval.py",
+        PYTHON_EXEC, "tools/eval.py",
         "-c", CONFIG_PATH,
         "-o", f"Global.pretrained_model={EVAL_CKPT}",
         "-o", f"Eval.dataset.data_dir={data_dir}",
