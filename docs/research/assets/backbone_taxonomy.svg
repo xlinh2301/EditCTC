@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980">
+  <defs>
+    <style>
+      .title{font:700 30px sans-serif;fill:#172033}.h{font:700 22px sans-serif;fill:#172033}.t{font:16px sans-serif;fill:#26344d}.small{font:14px sans-serif;fill:#42526b}.box{stroke-width:2;rx:16}.arrow{stroke:#60708a;stroke-width:3;fill:none;marker-end:url(#m)}
+    </style>
+    <marker id="m" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#60708a"/></marker>
+  </defs>
+  <rect width="1600" height="980" fill="#fbfcfe"/>
+  <text x="60" y="58" class="title">Backbone candidates for horizontal CTC OCR</text>
+  <text x="60" y="88" class="small">Decision axis: pretrained compatibility → spatial detail → sequence context → deployment cost</text>
+
+  <rect x="60" y="135" width="300" height="225" fill="#e8f3ff" stroke="#2878c8" class="box"/>
+  <text x="85" y="174" class="h">Paddle-native CNN</text>
+  <text x="85" y="207" class="t">PPLCNetV4 / PP-LCNet family</text>
+  <text x="85" y="234" class="t">PPHGNet / PPHGNetV2</text>
+  <text x="85" y="278" class="small">+ official OCR recipes</text>
+  <text x="85" y="302" class="small">+ predictable H×W feature maps</text>
+  <text x="85" y="326" class="small">− limited global context</text>
+
+  <rect x="430" y="135" width="300" height="225" fill="#eaf8ef" stroke="#2f9d58" class="box"/>
+  <text x="455" y="174" class="h">Efficient hybrid</text>
+  <text x="455" y="207" class="t">MobileNetV4 / RepViT</text>
+  <text x="455" y="234" class="t">StarNet / FasterNet</text>
+  <text x="455" y="278" class="small">+ strong mobile throughput</text>
+  <text x="455" y="302" class="small">+ good latency–accuracy trade-off</text>
+  <text x="455" y="326" class="small">− OCR checkpoint is not automatic</text>
+
+  <rect x="800" y="135" width="300" height="225" fill="#fff4df" stroke="#d98b19" class="box"/>
+  <text x="825" y="174" class="h">Dynamic spatial CNN</text>
+  <text x="825" y="207" class="t">DCNv4 / FlashInternImage</text>
+  <text x="825" y="234" class="t">deformable residual block</text>
+  <text x="825" y="278" class="small">+ adaptive sampling for skew</text>
+  <text x="825" y="302" class="small">+ preserves 2-D geometry</text>
+  <text x="825" y="326" class="small">− custom kernel / portability risk</text>
+
+  <rect x="1170" y="135" width="360" height="225" fill="#f2eaff" stroke="#8157c8" class="box"/>
+  <text x="1195" y="174" class="h">Global sequence mixers</text>
+  <text x="1195" y="207" class="t">SVTRv2 / Vim / VMamba</text>
+  <text x="1195" y="234" class="t">MambaVision / ViT hybrids</text>
+  <text x="1195" y="278" class="small">+ long-range dependency</text>
+  <text x="1195" y="302" class="small">+ attractive high-resolution scaling</text>
+  <text x="1195" y="326" class="small">− less direct PaddleOCR transfer</text>
+
+  <path d="M210 390 V500 H800" class="arrow"/><path d="M580 390 V500 H800" class="arrow"/><path d="M950 390 V500 H800" class="arrow"/><path d="M1350 390 V500 H800" class="arrow"/>
+  <rect x="525" y="515" width="550" height="130" fill="#172033" class="box"/>
+  <text x="800" y="558" text-anchor="middle" style="font:700 24px sans-serif;fill:white">2-D feature map</text>
+  <text x="800" y="592" text-anchor="middle" style="font:16px sans-serif;fill:#dce7f7">keep H×W until alignment; collapse W → T only before CTC</text>
+  <text x="800" y="618" text-anchor="middle" style="font:16px sans-serif;fill:#dce7f7">shape contract: (B,C,H,W) → (B,T,C) → CTC logits</text>
+
+  <path d="M800 675 V735" class="arrow"/>
+  <rect x="300" y="755" width="1000" height="145" fill="#fff" stroke="#60708a" class="box"/>
+  <text x="330" y="793" class="h">EditCTC experiment order</text>
+  <text x="330" y="830" class="t">1. PPLCNetV4 + light-SVTR + CTC (transfer baseline)</text>
+  <text x="770" y="830" class="t">2. zero-init confidence gate</text>
+  <text x="330" y="862" class="t">3. native deformable residual</text>
+  <text x="770" y="862" class="t">4. PPHGNetV2 / SVTRv2 controls</text>
+  <text x="330" y="888" class="small">Select on validation only. Report exact-match, CER, latency, memory, and checkpoint provenance.</text>
+</svg>

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="760" viewBox="0 0 1500 760">
+  <defs><style>.h{font:700 24px sans-serif;fill:#172033}.t{font:16px sans-serif;fill:#26344d}.s{font:14px sans-serif;fill:#52627a}.b{stroke:#58708c;stroke-width:2;rx:14}.a{stroke:#58708c;stroke-width:3;fill:none;marker-end:url(#m)}</style><marker id="m" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 z" fill="#58708c"/></marker></defs>
+  <rect width="1500" height="760" fill="#fbfcfe"/><text x="60" y="55" style="font:700 30px sans-serif;fill:#172033">Alignment module before CTC: shape-safe experiment</text>
+  <rect x="60" y="150" width="230" height="140" fill="#e8f3ff" class="b"/><text x="175" y="195" text-anchor="middle" class="h">Backbone</text><text x="175" y="228" text-anchor="middle" class="t">F: (B,C,H,W)</text><text x="175" y="258" text-anchor="middle" class="s">PPLCNetV4 first</text>
+  <rect x="365" y="150" width="260" height="140" fill="#fff4df" class="b"/><text x="495" y="195" text-anchor="middle" class="h">Residual align</text><text x="495" y="228" text-anchor="middle" class="t">R = f(F, offsets, gate)</text><text x="495" y="258" text-anchor="middle" class="s">zero-init α; identity at start</text>
+  <rect x="700" y="150" width="240" height="140" fill="#eaf8ef" class="b"/><text x="820" y="195" text-anchor="middle" class="h">Sequence</text><text x="820" y="228" text-anchor="middle" class="t">F′: (B,C,H,W)</text><text x="820" y="258" text-anchor="middle" class="s">reshape / light-SVTR</text>
+  <rect x="1015" y="150" width="200" height="140" fill="#f2eaff" class="b"/><text x="1115" y="195" text-anchor="middle" class="h">CTC</text><text x="1115" y="228" text-anchor="middle" class="t">logits (B,T,V)</text><text x="1115" y="258" text-anchor="middle" class="s">same head</text>
+  <rect x="1290" y="150" width="150" height="140" fill="#172033" class="b"/><text x="1365" y="195" text-anchor="middle" style="font:700 22px sans-serif;fill:white">Audit</text><text x="1365" y="228" text-anchor="middle" style="font:14px sans-serif;fill:#dce7f7">CER / EM</text><text x="1365" y="258" text-anchor="middle" style="font:14px sans-serif;fill:#dce7f7">offset norm</text>
+  <path d="M290 220 H365 M625 220 H700 M940 220 H1015 M1215 220 H1290" class="a"/>
+  <rect x="210" y="390" width="1080" height="245" fill="#fff" class="b"/>
+  <text x="245" y="432" class="h">Required controls</text>
+  <text x="245" y="472" class="t">A. identity ablation: α = 0 or align disabled must reproduce the CTC baseline.</text>
+  <text x="245" y="508" class="t">B. offset ablation: offsets = 0 tests whether gains come from sampling or only extra capacity.</text>
+  <text x="245" y="544" class="t">C. gate logging: mean, p95, saturation rate, and correlation with CTC entropy.</text>
+  <text x="245" y="580" class="t">D. protocol: choose checkpoint and thresholds on validation; reserve test for one final report.</text>
+  <text x="245" y="612" class="s">The diagram follows the paper2md/Excalidraw workflow: readable source artifact, explicit tensor contracts, and audit hooks.</text>
+</svg>
