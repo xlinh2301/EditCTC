@@ -5,6 +5,8 @@
 - [`backbone_research_20261011.md`](backbone_research_20261011.md) — verified shortlist, advantages, disadvantages, evidence labels, and the proposed OCR experiment order.
 - [`assets/backbone_taxonomy.svg`](assets/backbone_taxonomy.svg) — editable backbone taxonomy and decision path.
 - [`assets/alignment_pipeline.svg`](assets/alignment_pipeline.svg) — shape-safe alignment-before-CTC pipeline and audit controls.
+- [`backbone_architecture_deep_dive.md`](backbone_architecture_deep_dive.md) — block-by-block mechanics, tensor changes, OCR integration points, and risks.
+- [`assets/backbone_block_mechanics.svg`](assets/backbone_block_mechanics.svg) — internal block diagrams for LCNetV4, RepViT, SVTRv2, and SSM families.
 
 ## Reading rule
 

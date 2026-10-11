@@ -10,6 +10,8 @@
 
 ![Alignment pipeline](assets/alignment_pipeline.svg)
 
+For block-level architecture, tensor changes, and insertion-point analysis, see [`backbone_architecture_deep_dive.md`](backbone_architecture_deep_dive.md).
+
 ## 1. What this report does and does not claim
 
 This report defines a 100-record screening protocol and performs a deeper technical review of the candidates that can affect this project. The current version records the verified shortlist and the retrieval method; it does not pretend that every broad-search result was read in full. Search results are not equal to verified evidence. A model is called **SOTA** only when the primary source makes a benchmark claim and the benchmark is named. A model is called **candidate** when its mechanism is promising but no compatible OCR checkpoint or fair water-meter result is available.
